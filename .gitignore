@@ -1,0 +1,7 @@
+# Drupal generated files (bind-mounted, not tracked)
+web/sites/default/files/*
+!web/sites/default/files/.gitkeep
+!web/sites/default/files/resume.pdf
+
+# Never commit real credentials
+.env

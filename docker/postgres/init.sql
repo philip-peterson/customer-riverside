@@ -1,0 +1,10 @@
+-- Drupal PostgreSQL seed
+--
+-- On first run this file is empty; Drupal is installed by the entrypoint via drush.
+-- After initial setup, replace this file with a full dump:
+--
+--   docker compose exec postgres pg_dump --no-owner --no-acl -U drupal drupal \
+--     > docker/postgres/init.sql
+--
+-- Commit the dump so every subsequent `docker compose up` (after `down`) starts
+-- from a known-good state without re-running the installer.

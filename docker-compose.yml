@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: postgres
+      DB_NAME: drupal
+      DB_USER: drupal
+      DB_PASS: drupal
+      SITE_NAME: "Portfolio"
+      ADMIN_PASS: "${ADMIN_PASS:-admin}"
+      HASH_SALT: "${HASH_SALT:-replace-this-in-production-with-a-long-random-string}"
+    volumes:
+      - ./web/sites/default/files:/var/www/html/web/sites/default/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: drupal
+      POSTGRES_USER: drupal
+      POSTGRES_PASSWORD: drupal
+    volumes:
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drupal -d drupal"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # No named volume for data = fully ephemeral (recreated from init.sql on every `docker compose up` after `down`)
