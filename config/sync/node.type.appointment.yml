@@ -1,0 +1,11 @@
+uuid: f65bac69-7b49-47b2-9555-2d2f017ec79e
+langcode: en
+status: true
+dependencies: {  }
+name: Appointment
+type: appointment
+description: 'A booking between a Patient and a Provider at a particular time.'
+help: null
+new_revision: true
+preview_mode: 0
+display_submitted: true
