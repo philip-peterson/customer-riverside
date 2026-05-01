@@ -39,12 +39,18 @@ else
   $DRUSH en -y symfony_mailer
   echo "[entrypoint] Modules enabled."
 
+  echo "[entrypoint] Setting themes..."                                                                                                                     
+  $DRUSH theme:enable olivero claro                                                                                                                         
+  $DRUSH config:set system.theme default olivero -y                                                                                                         
+  $DRUSH config:set system.theme admin claro -y                                                                                                             
+  echo "[entrypoint] Themes set."
 
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
     echo "[entrypoint] Importing configuration from sync dir..."
     $DRUSH config:import -y
   fi
 fi
+
 
 echo "[entrypoint] Starting services..."
 exec supervisord -c /etc/supervisor/conf.d/supervisord.conf
