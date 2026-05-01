@@ -56,6 +56,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Overlay our site-specific files on top of the scaffolded web/
 COPY web/sites/default/settings.php web/sites/default/settings.php
 COPY web/sites/default/files/ web/sites/default/files/
+COPY web/modules/custom/ web/modules/custom/
 COPY config/sync/ config/sync/
 
 # Debian nginx runs as www-data (matches php-fpm), config in conf.d/
