@@ -31,7 +31,7 @@ WORKDIR /var/www/html
 # Copy composer manifest first for layer caching; install pulls Drupal from Packagist.
 # To use ../drupal instead, add it as a path repository in composer.json:
 #   "repositories": [{"type": "path", "url": "../drupal/core", "options": {"symlink": false}}]
-# then bump drupal/core-recommended to "12.x-dev@dev" and rebuild.
+# then bump drupal/core-recommended to "11.x-dev@dev" and rebuild.
 COPY composer.json ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 

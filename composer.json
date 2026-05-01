@@ -7,9 +7,9 @@
     "prefer-stable": true,
     "require": {
         "composer/installers": "^2.3",
-        "drupal/core-composer-scaffold": "^12",
-        "drupal/core-recommended": "^12",
-        "drush/drush": "^14 || dev-main"
+        "drupal/core-composer-scaffold": "^11",
+        "drupal/core-recommended": "^11",
+        "drush/drush": "^13 || ^14"
     },
     "config": {
         "allow-plugins": {
