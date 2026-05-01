@@ -24,6 +24,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+ENV PATH="/var/www/html/vendor/bin:${PATH}"
+
 WORKDIR /var/www/html
 
 # Copy composer manifest first for layer caching; install pulls Drupal from Packagist.
