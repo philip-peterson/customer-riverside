@@ -45,10 +45,6 @@ else
   $DRUSH config:set system.theme admin claro -y                                                                                                             
   echo "[entrypoint] Themes set."
 
-  echo "[entrypoint] Importing configuration..."
-  $DRUSH config:import -y
-  echo "[entrypoint] Configuration imported."
-
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
     echo "[entrypoint] Importing configuration from sync dir..."
     $DRUSH config:import -y
