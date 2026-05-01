@@ -1,0 +1,16 @@
+<?php
+
+use Drupal\node\Entity\NodeType;
+
+function riverside_pt_install() {
+   $type = NodeType::create([
+      'type' => 'appointment',
+      'name' => 'Appointment',
+      'description' => 'A booking between a Patient and a Provider at a particular time.',
+      'new_revision' => FALSE,
+      'preview_mode' => DRUPAL_DISABLED,
+      'display_submitted' => FALSE,
+   ]);
+   $type->save();
+}
+

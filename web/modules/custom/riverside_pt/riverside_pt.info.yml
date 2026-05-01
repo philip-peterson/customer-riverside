@@ -1,0 +1,5 @@
+name: Riverside PT
+type: module
+description: Custom functionality for Riverside Physical Therapy.
+package: Custom
+core_version_requirement: ^11
