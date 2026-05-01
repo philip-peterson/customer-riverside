@@ -35,7 +35,22 @@ WORKDIR /var/www/html
 COPY composer.json ./
 
 RUN composer config repositories.drupal composer https://packages.drupal.org/8
-RUN composer require drupal/webform drupal/symfony_mailer --no-update
+
+## Composer requires
+
+
+# Core
+RUN composer require composer/installers:^2.3			--no-update
+RUN composer require drupal/core-recommended:^11		--no-update
+RUN composer require drupal/core-composer-scaffold:^11		--no-update
+RUN composer require drush/drush:"^13 || ^14"			--no-update
+
+# Extra
+RUN composer require drupal/webform drupal/symfony_mailer	--no-update
+
+#######
+
+
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Overlay our site-specific files on top of the scaffolded web/

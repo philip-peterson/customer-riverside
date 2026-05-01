@@ -5,12 +5,6 @@
     "license": "GPL-2.0-or-later",
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "require": {
-        "composer/installers": "^2.3",
-        "drupal/core-composer-scaffold": "^11",
-        "drupal/core-recommended": "^11",
-        "drush/drush": "^13 || ^14"
-    },
     "config": {
         "allow-plugins": {
             "composer/installers": true,
