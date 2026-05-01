@@ -33,6 +33,13 @@ else
     -y
   echo "[entrypoint] Drupal installed."
 
+  echo "[entrypoint] Enabling modules..."
+  $DRUSH en -y views views_ui field_ui text options link datetime
+  $DRUSH en -y webform webform_ui
+  $DRUSH en -y symfony_mailer
+  echo "[entrypoint] Modules enabled."
+
+
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
     echo "[entrypoint] Importing configuration from sync dir..."
     $DRUSH config:import -y

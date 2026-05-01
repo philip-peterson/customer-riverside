@@ -33,6 +33,9 @@ WORKDIR /var/www/html
 #   "repositories": [{"type": "path", "url": "../drupal/core", "options": {"symlink": false}}]
 # then bump drupal/core-recommended to "11.x-dev@dev" and rebuild.
 COPY composer.json ./
+
+RUN composer config repositories.drupal composer https://packages.drupal.org/8
+
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Overlay our site-specific files on top of the scaffolded web/
