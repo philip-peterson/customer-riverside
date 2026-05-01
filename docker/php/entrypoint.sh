@@ -37,6 +37,7 @@ else
   $DRUSH en -y views views_ui field_ui text options link datetime
   $DRUSH en -y webform webform_ui
   $DRUSH en -y symfony_mailer
+  $DRUSH en -y riverside_pt
   echo "[entrypoint] Modules enabled."
 
   echo "[entrypoint] Setting themes..."                                                                                                                     
