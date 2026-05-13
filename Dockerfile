@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libzip-dev \
     git \
     unzip \
+    locales \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
@@ -46,7 +47,7 @@ RUN composer require drupal/core-composer-scaffold:^11		--no-update
 RUN composer require drush/drush:"^13 || ^14"			--no-update
 
 # Extra
-RUN composer require drupal/webform drupal/symfony_mailer	--no-update
+RUN composer require drupal/webform drupal/symfony_mailer drupal/claro_compact	--no-update
 
 #######
 
@@ -57,6 +58,10 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 COPY web/sites/default/settings.php web/sites/default/settings.php
 COPY web/sites/default/files/ web/sites/default/files/
 COPY web/modules/custom/ web/modules/custom/
+
+ARG FULLCALENDAR_VERSION=6.1.15
+RUN curl -fsSL "https://cdn.jsdelivr.net/npm/fullcalendar@${FULLCALENDAR_VERSION}/index.global.min.js" \
+         -o web/modules/custom/riverside_pt/js/fullcalendar.min.js
 COPY config/sync/ config/sync/
 
 # Debian nginx runs as www-data (matches php-fpm), config in conf.d/

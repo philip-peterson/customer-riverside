@@ -26,7 +26,7 @@ if [ "$HAS_TABLES" = "1" ]; then
     echo "[entrypoint] No config to import, continuing."
 else
   echo "[entrypoint] Fresh database, installing Drupal..."
-  $DRUSH site:install minimal \
+  $DRUSH site:install standard \
     --site-name="${SITE_NAME:-Portfolio}" \
     --account-name=admin \
     --account-pass="${ADMIN_PASS:-admin}" \
@@ -37,13 +37,14 @@ else
   $DRUSH en -y views views_ui field_ui text options link datetime
   $DRUSH en -y webform webform_ui
   $DRUSH en -y symfony_mailer
+
   $DRUSH en -y riverside_pt
   echo "[entrypoint] Modules enabled."
 
   echo "[entrypoint] Setting themes..."                                                                                                                     
-  $DRUSH theme:enable olivero claro                                                                                                                         
-  $DRUSH config:set system.theme default olivero -y                                                                                                         
-  $DRUSH config:set system.theme admin claro -y                                                                                                             
+  $DRUSH theme:enable olivero claro_compact
+  $DRUSH config:set system.theme default olivero -y
+  $DRUSH config:set system.theme admin claro_compact -y                                                                                                             
   echo "[entrypoint] Themes set."
 
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then

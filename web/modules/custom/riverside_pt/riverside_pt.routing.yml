@@ -1,0 +1,17 @@
+riverside_pt.schedule:
+  path: '/schedule'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\ScheduleController::page'
+    _title: 'Schedule'
+  requirements:
+    _permission: 'access content'
+
+riverside_pt.schedule_events:
+  path: '/schedule/events'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\ScheduleController::events'
+  requirements:
+    _permission: 'access content'
+  options:
+    _auth:
+      - cookie

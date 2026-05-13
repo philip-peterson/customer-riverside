@@ -1,16 +1,143 @@
 <?php
 
 use Drupal\node\Entity\NodeType;
+use Drupal\user\Entity\Role;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
 
 function riverside_pt_install() {
-   $type = NodeType::create([
-      'type' => 'appointment',
-      'name' => 'Appointment',
-      'description' => 'A booking between a Patient and a Provider at a particular time.',
-      'new_revision' => FALSE,
-      'preview_mode' => DRUPAL_DISABLED,
-      'display_submitted' => FALSE,
-   ]);
-   $type->save();
-}
+   array_walk([
+      // Appointment
+      NodeType::create([
+         'type' => 'appointment',
+         'name' => 'Appointment',
+         'description' => 'A booking between a Patient and a Provider at a particular time.',
+         'new_revision' => FALSE,
+         'display_submitted' => FALSE,
+      ]),
+      FieldStorageConfig::create([
+         'field_name' => 'field_appointment_date',
+         'entity_type' => 'node',
+         'type' => 'datetime',
+         'settings' => ['datetime_type' => 'datetime'],
+      ]),
+      FieldStorageConfig::create([
+         'field_name' => 'field_duration_minutes',
+         'entity_type' => 'node',
+         'type' => 'integer',
+      ]),
+      FieldStorageConfig::create([
+         'field_name' => 'field_service_type',
+         'entity_type' => 'node',
+         'type' => 'list_string',
+         'settings' => [
+            'allowed_values' => [
+               'diagnostic' => 'Diagnostic',
+               'sports_rehab' => 'Sports Rehab',
+               'pre_post_surgical_rehab' => 'Pre/Post-Surgical Rehab',
+               'neurological_pt' => 'Neurological PT',
+            ],
+         ],
+      ]),
+      FieldStorageConfig::create([
+         'field_name' => 'field_provider',
+         'entity_type' => 'node',
+         'type' => 'entity_reference',
+         'settings' => ['target_type' => 'user'],
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_appointment_date',
+         'entity_type' => 'node',
+         'bundle' => 'appointment',
+         'label' => 'Appointment Date',
+         'required' => TRUE,
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_duration_minutes',
+         'entity_type' => 'node',
+         'bundle' => 'appointment',
+         'label' => 'Duration (Minutes)',
+         'required' => TRUE,
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_service_type',
+         'entity_type' => 'node',
+         'bundle' => 'appointment',
+         'label' => 'Service Type',
+         'required' => TRUE,
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_provider',
+         'entity_type' => 'node',
+         'bundle' => 'appointment',
+         'label' => 'Provider',
+         'required' => TRUE,
+         'settings' => [
+            'handler' => 'default:user',
+            'handler_settings' => [
+               'filter' => [
+                  'type' => '_role',
+                  'role' => ['provider' => 'provider'],
+               ],
+            ],
+         ],
+      ]),
 
+      // Provider
+      Role::create([
+         'id' => 'provider',
+         'label' => 'Provider',
+      ]),
+
+      // Provider Availability
+      NodeType::create([
+         'type' => 'provider_availability',
+         'name' => 'Provider Availability',
+         'description' => 'A window of time during which a Provider is available for appointments.',
+         'new_revision' => FALSE,
+         'display_submitted' => FALSE,
+      ]),
+      FieldStorageConfig::create([
+         'field_name' => 'field_start_datetime',
+         'entity_type' => 'node',
+         'type' => 'datetime',
+         'settings' => ['datetime_type' => 'datetime'],
+      ]),
+      FieldStorageConfig::create([
+         'field_name' => 'field_end_datetime',
+         'entity_type' => 'node',
+         'type' => 'datetime',
+         'settings' => ['datetime_type' => 'datetime'],
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_provider',
+         'entity_type' => 'node',
+         'bundle' => 'provider_availability',
+         'label' => 'Provider',
+         'required' => TRUE,
+         'settings' => [
+            'handler' => 'default:user',
+            'handler_settings' => [
+               'filter' => [
+                  'type' => '_role',
+                  'role' => ['provider' => 'provider'],
+               ],
+            ],
+         ],
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_start_datetime',
+         'entity_type' => 'node',
+         'bundle' => 'provider_availability',
+         'label' => 'Start',
+         'required' => TRUE,
+      ]),
+      FieldConfig::create([
+         'field_name' => 'field_end_datetime',
+         'entity_type' => 'node',
+         'bundle' => 'provider_availability',
+         'label' => 'End',
+         'required' => TRUE,
+      ]),
+   ], fn($entity) => $entity->save());
+}

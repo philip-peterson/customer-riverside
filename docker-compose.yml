@@ -28,9 +28,12 @@ services:
       POSTGRES_PASSWORD: drupal
     volumes:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U drupal -d drupal"]
       interval: 5s
       timeout: 5s
       retries: 20
-    # No named volume for data = fully ephemeral (recreated from init.sql on every `docker compose up` after `down`)
+
+volumes:
+  postgres_data:

@@ -1,0 +1,6 @@
+schedule:
+  js:
+    js/fullcalendar.min.js: { minified: true }
+    js/calendar.js: {}
+  dependencies:
+    - core/drupalSettings
