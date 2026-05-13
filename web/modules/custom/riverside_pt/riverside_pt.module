@@ -1,5 +1,17 @@
 <?php
 
+use Drupal\Core\Breadcrumb\Breadcrumb;
+use Drupal\Core\Link;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+function riverside_pt_system_breadcrumb_alter(Breadcrumb &$breadcrumb, RouteMatchInterface $route_match, array $context): void {
+  if ($route_match->getRouteName() === 'riverside_pt.booking') {
+    $breadcrumb = new Breadcrumb();
+    $breadcrumb->addLink(Link::createFromRoute('← Back', 'riverside_pt.schedule'));
+    $breadcrumb->addCacheContexts(['route']);
+  }
+}
+
 function riverside_pt_mail(string $key, array &$message, array $params): void {
   if ($key !== 'booking_request') {
     return;
@@ -9,9 +21,15 @@ function riverside_pt_mail(string $key, array &$message, array $params): void {
   $end   = new \DateTime($params['end']);
 
   $message['subject'] = 'Booking request — ' . $start->format('M j, Y g:i A');
-  $message['body'][]  = implode("\n", [
+  $lines = [
     'Name:  ' . $params['first_name'] . ' ' . $params['last_name'],
     'Phone: ' . $params['phone'],
     'Slot:  ' . $start->format('l, F j, Y') . ', ' . $start->format('g:i A') . '–' . $end->format('g:i A'),
-  ]);
+  ];
+
+  if (!empty($params['comments'])) {
+    $lines[] = 'Comments: ' . $params['comments'];
+  }
+
+  $message['body'][] = implode("\n", $lines);
 }

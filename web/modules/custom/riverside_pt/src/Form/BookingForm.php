@@ -6,26 +6,29 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\TempStore\PrivateTempStore;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class BookingForm extends FormBase {
+
+  private PrivateTempStore $tempStore;
 
   public function __construct(
     private readonly MailManagerInterface $mailManager,
     ConfigFactoryInterface $configFactory,
-    RequestStack $requestStack,
+    PrivateTempStoreFactory $tempStoreFactory,
   ) {
     $this->configFactory = $configFactory;
-    $this->requestStack = $requestStack;
+    $this->tempStore = $tempStoreFactory->get('riverside_pt');
   }
 
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('plugin.manager.mail'),
       $container->get('config.factory'),
-      $container->get('request_stack'),
+      $container->get('tempstore.private'),
     );
   }
 
@@ -34,10 +37,10 @@ class BookingForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $query = $this->requestStack->getCurrentRequest()->query;
-    $start = $query->get('start', '');
-    $end   = $query->get('end', '');
-    $uid   = $query->get('provider', '');
+    $slot  = $this->tempStore->get('booking_slot') ?? [];
+    $start = $slot['start'] ?? '';
+    $end   = $slot['end'] ?? '';
+    $uid   = $slot['provider_id'] ?? '';
 
     $slot_display = '';
     if ($start && $end) {
@@ -45,6 +48,8 @@ class BookingForm extends FormBase {
       $e = new \DateTime($end);
       $slot_display = $s->format('l, F j, Y') . ', ' . $s->format('g:i A') . '–' . $e->format('g:i A');
     }
+
+    $form['#cache'] = ['max-age' => 0];
 
     $form['slot_summary'] = [
       '#type'   => 'item',
@@ -59,10 +64,6 @@ class BookingForm extends FormBase {
         '#markup' => $provider->getDisplayName(),
       ];
     }
-
-    $form['start']       = ['#type' => 'hidden', '#value' => $start];
-    $form['end']         = ['#type' => 'hidden', '#value' => $end];
-    $form['provider_id'] = ['#type' => 'hidden', '#value' => $uid];
 
     $form['first_name'] = [
       '#type'     => 'textfield',
@@ -82,6 +83,12 @@ class BookingForm extends FormBase {
       '#required' => TRUE,
     ];
 
+    $form['comments'] = [
+      '#type'  => 'textarea',
+      '#title' => $this->t('Comments'),
+      '#rows'  => 4,
+    ];
+
     $form['actions'] = ['#type' => 'actions'];
     $form['actions']['submit'] = [
       '#type'  => 'submit',
@@ -91,19 +98,49 @@ class BookingForm extends FormBase {
     return $form;
   }
 
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
+    $slot  = $this->tempStore->get('booking_slot') ?? [];
+    $start = $slot['start'] ?? '';
+
+    if (!$start) {
+      $form_state->setError($form['slot_summary'], $this->t('No slot selected. Please go back and choose a time.'));
+      return;
+    }
+
+    if (new \DateTime($start) < new \DateTime()) {
+      $form_state->setError($form['slot_summary'], $this->t('That slot is in the past. Please go back and choose another time.'));
+      return;
+    }
+
+    $provider_id = $slot['provider_id'] ?? '';
+    $conflict = \Drupal::entityQuery('node')
+      ->condition('type', 'appointment')
+      ->condition('field_appointment_date', $start)
+      ->condition('field_provider', $provider_id ?: 0)
+      ->accessCheck(FALSE)
+      ->count()
+      ->execute();
+
+    if ($conflict > 0) {
+      $form_state->setError($form['slot_summary'], $this->t('That slot was just booked. Please go back and choose another time.'));
+    }
+  }
+
   public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $slot = $this->tempStore->get('booking_slot') ?? [];
+    $this->tempStore->delete('booking_slot');
+
     $to   = $this->configFactory->get('riverside_pt.settings')->get('notification_email');
     $lang = $this->languageManager()->getDefaultLanguage()->getId();
 
-    $params = [
+    $sent = $this->mailManager->mail('riverside_pt', 'booking_request', $to, $lang, [
       'first_name' => $form_state->getValue('first_name'),
       'last_name'  => $form_state->getValue('last_name'),
       'phone'      => $form_state->getValue('phone'),
-      'start'      => $form_state->getValue('start'),
-      'end'        => $form_state->getValue('end'),
-    ];
-
-    $sent = $this->mailManager->mail('riverside_pt', 'booking_request', $to, $lang, $params);
+      'comments'   => $form_state->getValue('comments'),
+      'start'      => $slot['start'] ?? '',
+      'end'        => $slot['end'] ?? '',
+    ]);
 
     if ($sent['result']) {
       $this->messenger()->addStatus($this->t('Your request has been submitted. We will contact you to confirm.'));

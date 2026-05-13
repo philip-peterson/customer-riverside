@@ -14,6 +14,14 @@ riverside_pt.booking:
   requirements:
     _permission: 'access content'
 
+riverside_pt.booking_store_slot:
+  path: '/schedule/book/slot'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\ScheduleController::storeSlot'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
 riverside_pt.schedule_events:
   path: '/schedule/events'
   defaults:

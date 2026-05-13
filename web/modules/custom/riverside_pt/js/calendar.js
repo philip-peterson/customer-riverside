@@ -47,15 +47,30 @@
         panelSlots.innerHTML = '';
         arg.allSegs.forEach(function (seg) {
           const li = document.createElement('li');
-          const start = seg.event.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-          const end = seg.event.end.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-          const params = new URLSearchParams({
-            start: seg.event.startStr,
-            end: seg.event.endStr,
-          });
+          const startLabel = seg.event.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+          const endLabel = seg.event.end.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
           const a = document.createElement('a');
-          a.href = drupalSettings.riversidePt.bookingUrl + '?' + params.toString();
-          a.textContent = start + ' – ' + end;
+          a.href = '#';
+          a.textContent = startLabel + ' – ' + endLabel;
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            fetch(drupalSettings.riversidePt.storeSlotUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                start: seg.event.startStr,
+                end: seg.event.endStr,
+              }),
+            }).then(function (res) {
+              if (res.ok) {
+                window.location.href = drupalSettings.riversidePt.bookingUrl;
+              } else {
+                a.textContent += ' (no longer available)';
+                a.style.pointerEvents = 'none';
+                a.style.opacity = '0.5';
+              }
+            });
+          });
           li.appendChild(a);
           panelSlots.appendChild(li);
         });
