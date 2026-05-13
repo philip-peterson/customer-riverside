@@ -24,6 +24,7 @@ if [ "$HAS_TABLES" = "1" ]; then
   $DRUSH config:import -y 2>/dev/null && \
     echo "[entrypoint] Config imported." || \
     echo "[entrypoint] No config to import, continuing."
+  $DRUSH theme:enable claro_compact -y
 else
   echo "[entrypoint] Fresh database, installing Drupal..."
   $DRUSH site:install standard \
@@ -41,10 +42,8 @@ else
   $DRUSH en -y riverside_pt
   echo "[entrypoint] Modules enabled."
 
-  echo "[entrypoint] Setting themes..."                                                                                                                     
+  echo "[entrypoint] Setting themes..."
   $DRUSH theme:enable olivero claro_compact
-  $DRUSH config:set system.theme default olivero -y
-  $DRUSH config:set system.theme admin claro_compact -y                                                                                                             
   echo "[entrypoint] Themes set."
 
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
