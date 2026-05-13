@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies: {}
+id: postmark
+label: Postmark
+plugin: dsn
+configuration:
+  dsn: 'postmark+api://change-me@default'

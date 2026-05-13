@@ -1,3 +1,4 @@
+notification_email: 'admin@example.com'
 holidays:
   - date: '2026-01-01'
     name: "New Year's Day"

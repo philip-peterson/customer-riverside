@@ -79,11 +79,9 @@
 }
 
 #riverside-calendar .riverside-holiday-label {
+  line-height: 1;
   font-size: 0.65rem;
   color: #b45309;
   text-align: center;
   padding-bottom: 2px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }

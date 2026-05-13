@@ -1,0 +1,17 @@
+<?php
+
+function riverside_pt_mail(string $key, array &$message, array $params): void {
+  if ($key !== 'booking_request') {
+    return;
+  }
+
+  $start = new \DateTime($params['start']);
+  $end   = new \DateTime($params['end']);
+
+  $message['subject'] = 'Booking request — ' . $start->format('M j, Y g:i A');
+  $message['body'][]  = implode("\n", [
+    'Name:  ' . $params['first_name'] . ' ' . $params['last_name'],
+    'Phone: ' . $params['phone'],
+    'Slot:  ' . $start->format('l, F j, Y') . ', ' . $start->format('g:i A') . '–' . $end->format('g:i A'),
+  ]);
+}

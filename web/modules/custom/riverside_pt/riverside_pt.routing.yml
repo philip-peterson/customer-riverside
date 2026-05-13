@@ -6,6 +6,14 @@ riverside_pt.schedule:
   requirements:
     _permission: 'access content'
 
+riverside_pt.booking:
+  path: '/schedule/book'
+  defaults:
+    _form: '\Drupal\riverside_pt\Form\BookingForm'
+    _title: 'Request Appointment'
+  requirements:
+    _permission: 'access content'
+
 riverside_pt.schedule_events:
   path: '/schedule/events'
   defaults:

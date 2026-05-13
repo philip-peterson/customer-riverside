@@ -2,6 +2,9 @@ riverside_pt.settings:
   type: config_object
   label: 'Riverside PT Settings'
   mapping:
+    notification_email:
+      type: string
+      label: 'Notification email address'
     holidays:
       type: sequence
       label: 'Holidays'

@@ -32,7 +32,12 @@
         const label = document.createElement('div');
         label.className = 'riverside-holiday-label';
         label.textContent = holiday;
-        arg.el.appendChild(label);
+        const dayTop = arg.el.querySelector('.fc-daygrid-day-top');
+        if (dayTop) {
+          dayTop.insertAdjacentElement('afterend', label);
+        } else {
+          arg.el.appendChild(label);
+        }
       },
       moreLinkClick: function (arg) {
         arg.jsEvent.preventDefault();
@@ -44,7 +49,14 @@
           const li = document.createElement('li');
           const start = seg.event.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
           const end = seg.event.end.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-          li.textContent = start + ' – ' + end;
+          const params = new URLSearchParams({
+            start: seg.event.startStr,
+            end: seg.event.endStr,
+          });
+          const a = document.createElement('a');
+          a.href = drupalSettings.riversidePt.bookingUrl + '?' + params.toString();
+          a.textContent = start + ' – ' + end;
+          li.appendChild(a);
           panelSlots.appendChild(li);
         });
         openPanel();

@@ -5,6 +5,10 @@
     "license": "GPL-2.0-or-later",
     "minimum-stability": "dev",
     "prefer-stable": true,
+    "require": {
+        "symfony/http-client": "^7.0",
+        "symfony/postmark-mailer": "^7.0"
+    },
     "config": {
         "allow-plugins": {
             "composer/installers": true,

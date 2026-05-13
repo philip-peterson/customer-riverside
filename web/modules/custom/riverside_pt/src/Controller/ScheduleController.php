@@ -60,7 +60,8 @@ class ScheduleController extends ControllerBase {
         'library' => ['riverside_pt/schedule'],
         'drupalSettings' => [
           'riversidePt' => [
-            'eventsUrl' => Url::fromRoute('riverside_pt.schedule_events')->toString(),
+            'eventsUrl'  => Url::fromRoute('riverside_pt.schedule_events')->toString(),
+            'bookingUrl' => Url::fromRoute('riverside_pt.booking')->toString(),
             'holidays' => $this->buildHolidaysMap(),
           ],
         ],
@@ -82,6 +83,10 @@ class ScheduleController extends ControllerBase {
     $end = $request->query->get('end');
 
     $current = new \DateTime($start ?? 'now');
+    $today = new \DateTime('today');
+    if ($current < $today) {
+      $current = $today;
+    }
     $until = new \DateTime($end ?? 'now');
     $events = [];
     $id = 1;

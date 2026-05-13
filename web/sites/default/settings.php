@@ -19,6 +19,11 @@ $settings['hash_salt'] = getenv('HASH_SALT') ?: 'replace-this-in-production';
 
 $settings['update_free_access'] = FALSE;
 
+if ($postmark_key = getenv('POSTMARK_API_KEY')) {
+  $config['symfony_mailer.mailer_transport.postmark']['configuration']['dsn'] =
+    'postmark+api://' . $postmark_key . '@default';
+}
+
 // Disable CSS/JS aggregation — assets served directly from source paths.
 $config['system.performance']['css']['preprocess'] = FALSE;
 $config['system.performance']['js']['preprocess'] = FALSE;
