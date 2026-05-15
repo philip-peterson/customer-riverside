@@ -7,6 +7,8 @@ navigation:
   css:
     theme:
       css/nav.css: {}
+  js:
+    js/nav.js: {}
 
 schedule:
   css:

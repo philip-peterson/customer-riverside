@@ -10,7 +10,7 @@ services:
       DB_NAME: drupal
       DB_USER: drupal
       DB_PASS: drupal
-      SITE_NAME: "Portfolio"
+      SITE_NAME: "Riverside Therapeutics"
       ADMIN_PASS: "${ADMIN_PASS:-admin}"
       HASH_SALT: "${HASH_SALT:-replace-this-in-production-with-a-long-random-string}"
       POSTMARK_API_KEY: "${POSTMARK_API_KEY:-}"

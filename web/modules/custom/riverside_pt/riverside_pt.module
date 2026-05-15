@@ -8,6 +8,61 @@ function riverside_pt_page_attachments(array &$attachments): void {
   $attachments['#attached']['library'][] = 'riverside_pt/navigation';
 }
 
+function riverside_pt_theme(): array {
+  return [
+    'riverside_pt_header' => [
+      'variables' => [
+        'site_name'    => NULL,
+        'home_url'     => NULL,
+        'menu_items'   => [],
+        'current_path' => NULL,
+      ],
+    ],
+  ];
+}
+
+function riverside_pt_page_top(array &$page_top): void {
+  $page_top['rpt_header'] = [
+    '#theme' => 'riverside_pt_header',
+    '#cache' => ['contexts' => ['url.path']],
+  ];
+}
+
+function riverside_pt_preprocess_riverside_pt_header(array &$variables): void {
+  $variables['site_name'] = \Drupal::config('system.site')->get('name');
+  $variables['home_url']  = \Drupal\Core\Url::fromRoute('<front>')->toString();
+
+  $tree_service = \Drupal::service('menu.link_tree');
+  $params = new \Drupal\Core\Menu\MenuTreeParameters();
+  $params->setMaxDepth(1);
+  $tree = $tree_service->load('main', $params);
+  $tree = $tree_service->transform($tree, [
+    ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+    ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+  ]);
+
+  $seen  = [];
+  $items = [];
+  foreach ($tree as $element) {
+    if (!$element->access->isAllowed()) {
+      continue;
+    }
+    $url = $element->link->getUrlObject()->toString();
+    if (in_array($url, $seen, TRUE)) {
+      continue;
+    }
+    $seen[]  = $url;
+    $title   = (string) $element->link->getTitle();
+    $items[] = [
+      'title'  => $title,
+      'url'    => $url,
+      'is_cta' => ($title === 'Book An Appointment'),
+    ];
+  }
+  $variables['menu_items']   = $items;
+  $variables['current_path'] = \Drupal::request()->getPathInfo();
+}
+
 function riverside_pt_system_breadcrumb_alter(Breadcrumb &$breadcrumb, RouteMatchInterface $route_match, array $context): void {
   if ($route_match->getRouteName() === 'riverside_pt.booking') {
     $breadcrumb = new Breadcrumb();

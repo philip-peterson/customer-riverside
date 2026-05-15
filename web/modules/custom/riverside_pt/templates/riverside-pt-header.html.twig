@@ -1,0 +1,36 @@
+<header class="rpt-header" role="banner">
+  <div class="rpt-header__inner">
+
+    <a class="rpt-header__brand" href="{{ home_url }}">{{ site_name }}</a>
+
+    <nav class="rpt-header__nav" id="rpt-main-nav" aria-label="Main navigation">
+      <ul class="rpt-header__list">
+        {% for item in menu_items %}
+          {% if not item.is_cta %}
+            <li class="rpt-header__item">
+              <a class="rpt-header__link{% if current_path == item.url %} is-active{% endif %}"
+                 href="{{ item.url }}">{{ item.title }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+        {% for item in menu_items %}
+          {% if item.is_cta %}
+            <li class="rpt-header__item rpt-header__item--cta">
+              <a class="rpt-header__cta" href="{{ item.url }}">{{ item.title }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <button class="rpt-header__hamburger"
+            aria-expanded="false"
+            aria-controls="rpt-main-nav"
+            aria-label="Toggle navigation">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+  </div>
+</header>

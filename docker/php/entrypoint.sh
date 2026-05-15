@@ -63,5 +63,7 @@ else
     echo "[entrypoint] No config to import, continuing."
 fi
 
+$DRUSH cache:rebuild >/dev/null 2>&1 && echo "[entrypoint] Cache rebuilt."
+
 echo "[entrypoint] Starting services..."
 exec supervisord -c /etc/supervisor/conf.d/supervisord.conf
