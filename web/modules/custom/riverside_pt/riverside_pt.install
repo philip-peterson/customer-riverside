@@ -9,165 +9,166 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Entity\FieldConfig;
 
 function riverside_pt_install() {
-   array_walk([
-      // Appointment
-      NodeType::create([
-         'type' => 'appointment',
-         'name' => 'Appointment',
-         'description' => 'A booking between a Patient and a Provider at a particular time.',
-         'new_revision' => FALSE,
-         'display_submitted' => FALSE,
-      ]),
-      FieldStorageConfig::create([
-         'field_name' => 'field_appointment_date',
-         'entity_type' => 'node',
-         'type' => 'datetime',
-         'settings' => ['datetime_type' => 'datetime'],
-      ]),
-      FieldStorageConfig::create([
-         'field_name' => 'field_duration_minutes',
-         'entity_type' => 'node',
-         'type' => 'integer',
-      ]),
-      FieldStorageConfig::create([
-         'field_name' => 'field_service_type',
-         'entity_type' => 'node',
-         'type' => 'list_string',
-         'settings' => [
-            'allowed_values' => [
-               'diagnostic' => 'Diagnostic',
-               'sports_rehab' => 'Sports Rehab',
-               'pre_post_surgical_rehab' => 'Pre/Post-Surgical Rehab',
-               'neurological_pt' => 'Neurological PT',
-            ],
-         ],
-      ]),
-      FieldStorageConfig::create([
-         'field_name' => 'field_provider',
-         'entity_type' => 'node',
-         'type' => 'entity_reference',
-         'settings' => ['target_type' => 'user'],
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_appointment_date',
-         'entity_type' => 'node',
-         'bundle' => 'appointment',
-         'label' => 'Appointment Date',
-         'required' => TRUE,
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_duration_minutes',
-         'entity_type' => 'node',
-         'bundle' => 'appointment',
-         'label' => 'Duration (Minutes)',
-         'required' => TRUE,
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_service_type',
-         'entity_type' => 'node',
-         'bundle' => 'appointment',
-         'label' => 'Service Type',
-         'required' => TRUE,
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_provider',
-         'entity_type' => 'node',
-         'bundle' => 'appointment',
-         'label' => 'Provider',
-         'required' => TRUE,
-         'settings' => [
-            'handler' => 'default:user',
-            'handler_settings' => [
-               'filter' => [
-                  'type' => '_role',
-                  'role' => ['provider' => 'provider'],
-               ],
-            ],
-         ],
-      ]),
+  // Pass 1: types, roles, and field storages (no inter-dependencies).
+  NodeType::create([
+    'type' => 'appointment',
+    'name' => 'Appointment',
+    'description' => 'A booking between a Patient and a Provider at a particular time.',
+    'new_revision' => FALSE,
+    'display_submitted' => FALSE,
+  ])->save();
 
-      // Provider
-      Role::create([
-         'id' => 'provider',
-         'label' => 'Provider',
-      ]),
+  NodeType::create([
+    'type' => 'provider_availability',
+    'name' => 'Provider Availability',
+    'description' => 'A window of time during which a Provider is available for appointments.',
+    'new_revision' => FALSE,
+    'display_submitted' => FALSE,
+  ])->save();
 
-      // Provider Availability
-      NodeType::create([
-         'type' => 'provider_availability',
-         'name' => 'Provider Availability',
-         'description' => 'A window of time during which a Provider is available for appointments.',
-         'new_revision' => FALSE,
-         'display_submitted' => FALSE,
-      ]),
-      FieldStorageConfig::create([
-         'field_name' => 'field_start_datetime',
-         'entity_type' => 'node',
-         'type' => 'datetime',
-         'settings' => ['datetime_type' => 'datetime'],
-      ]),
-      FieldStorageConfig::create([
-         'field_name' => 'field_end_datetime',
-         'entity_type' => 'node',
-         'type' => 'datetime',
-         'settings' => ['datetime_type' => 'datetime'],
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_provider',
-         'entity_type' => 'node',
-         'bundle' => 'provider_availability',
-         'label' => 'Provider',
-         'required' => TRUE,
-         'settings' => [
-            'handler' => 'default:user',
-            'handler_settings' => [
-               'filter' => [
-                  'type' => '_role',
-                  'role' => ['provider' => 'provider'],
-               ],
-            ],
-         ],
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_start_datetime',
-         'entity_type' => 'node',
-         'bundle' => 'provider_availability',
-         'label' => 'Start',
-         'required' => TRUE,
-      ]),
-      FieldConfig::create([
-         'field_name' => 'field_end_datetime',
-         'entity_type' => 'node',
-         'bundle' => 'provider_availability',
-         'label' => 'End',
-         'required' => TRUE,
-      ]),
-   ], fn($entity) => $entity->save());
+  Role::create(['id' => 'provider', 'label' => 'Provider'])->save();
 
-   try {
-     _riverside_pt_build_navigation();
-   }
-   catch (\Exception $e) {
-     \Drupal::logger('riverside_pt')->error('Navigation setup failed: @msg', ['@msg' => $e->getMessage()]);
-   }
+  FieldStorageConfig::create([
+    'field_name'  => 'field_appointment_date',
+    'entity_type' => 'node',
+    'type'        => 'datetime',
+    'settings'    => ['datetime_type' => 'datetime'],
+  ])->save();
 
-   \Drupal::configFactory()->getEditable('system.site')
-     ->set('page.front', '/home')
-     ->save();
+  FieldStorageConfig::create([
+    'field_name'  => 'field_duration_minutes',
+    'entity_type' => 'node',
+    'type'        => 'integer',
+  ])->save();
+
+  FieldStorageConfig::create([
+    'field_name'  => 'field_service_type',
+    'entity_type' => 'node',
+    'type'        => 'list_string',
+    'settings'    => [
+      'allowed_values' => [
+        'diagnostic'              => 'Diagnostic',
+        'sports_rehab'            => 'Sports Rehab',
+        'pre_post_surgical_rehab' => 'Pre/Post-Surgical Rehab',
+        'neurological_pt'         => 'Neurological PT',
+      ],
+    ],
+  ])->save();
+
+  FieldStorageConfig::create([
+    'field_name'  => 'field_provider',
+    'entity_type' => 'node',
+    'type'        => 'entity_reference',
+    'settings'    => ['target_type' => 'user'],
+  ])->save();
+
+  FieldStorageConfig::create([
+    'field_name'  => 'field_start_datetime',
+    'entity_type' => 'node',
+    'type'        => 'datetime',
+    'settings'    => ['datetime_type' => 'datetime'],
+  ])->save();
+
+  FieldStorageConfig::create([
+    'field_name'  => 'field_end_datetime',
+    'entity_type' => 'node',
+    'type'        => 'datetime',
+    'settings'    => ['datetime_type' => 'datetime'],
+  ])->save();
+
+  // Clear field definition cache so FieldConfig::preSave() can find the storages.
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  // Pass 2: field configs (depend on storages being in the DB).
+  FieldConfig::create([
+    'field_name'  => 'field_appointment_date',
+    'entity_type' => 'node',
+    'bundle'      => 'appointment',
+    'label'       => 'Appointment Date',
+    'required'    => TRUE,
+  ])->save();
+
+  FieldConfig::create([
+    'field_name'  => 'field_duration_minutes',
+    'entity_type' => 'node',
+    'bundle'      => 'appointment',
+    'label'       => 'Duration (Minutes)',
+    'required'    => TRUE,
+  ])->save();
+
+  FieldConfig::create([
+    'field_name'  => 'field_service_type',
+    'entity_type' => 'node',
+    'bundle'      => 'appointment',
+    'label'       => 'Service Type',
+    'required'    => TRUE,
+  ])->save();
+
+  FieldConfig::create([
+    'field_name'  => 'field_provider',
+    'entity_type' => 'node',
+    'bundle'      => 'appointment',
+    'label'       => 'Provider',
+    'required'    => TRUE,
+    'settings'    => [
+      'handler'          => 'default:user',
+      'handler_settings' => [
+        'filter' => ['type' => '_role', 'role' => ['provider' => 'provider']],
+      ],
+    ],
+  ])->save();
+
+  FieldConfig::create([
+    'field_name'  => 'field_provider',
+    'entity_type' => 'node',
+    'bundle'      => 'provider_availability',
+    'label'       => 'Provider',
+    'required'    => TRUE,
+    'settings'    => [
+      'handler'          => 'default:user',
+      'handler_settings' => [
+        'filter' => ['type' => '_role', 'role' => ['provider' => 'provider']],
+      ],
+    ],
+  ])->save();
+
+  FieldConfig::create([
+    'field_name'  => 'field_start_datetime',
+    'entity_type' => 'node',
+    'bundle'      => 'provider_availability',
+    'label'       => 'Start',
+    'required'    => TRUE,
+  ])->save();
+
+  FieldConfig::create([
+    'field_name'  => 'field_end_datetime',
+    'entity_type' => 'node',
+    'bundle'      => 'provider_availability',
+    'label'       => 'End',
+    'required'    => TRUE,
+  ])->save();
+
+  try {
+    _riverside_pt_build_navigation();
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('riverside_pt')->error('Navigation setup failed: @msg', ['@msg' => $e->getMessage()]);
+  }
+
+  \Drupal::configFactory()->getEditable('system.site')
+    ->set('page.front', '/home')
+    ->save();
 }
 
 function _riverside_pt_build_navigation(): void {
   $em = \Drupal::entityTypeManager();
 
-  // Remove whatever links Standard profile put in the main menu.
   foreach ($em->getStorage('menu_link_content')->loadByProperties(['menu_name' => 'main']) as $link) {
     $link->delete();
   }
 
-  // Create placeholder basic pages.
   foreach (['Services', 'About', 'FAQ', 'Contact'] as $title) {
-    $existing = $em->getStorage('node')->loadByProperties(['title' => $title, 'type' => 'page']);
-    if ($existing) {
+    if ($em->getStorage('node')->loadByProperties(['title' => $title, 'type' => 'page'])) {
       continue;
     }
     $node = Node::create(['type' => 'page', 'title' => $title, 'status' => 1]);
@@ -179,7 +180,6 @@ function _riverside_pt_build_navigation(): void {
     ])->save();
   }
 
-  // Build the primary navigation.
   $defs = [
     ['title' => 'Home',                'uri' => 'route:<front>',      'weight' => 0, 'class' => NULL],
     ['title' => 'Services',            'uri' => 'internal:/services', 'weight' => 1, 'class' => NULL],

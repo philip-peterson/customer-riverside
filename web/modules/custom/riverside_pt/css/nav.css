@@ -1,26 +1,111 @@
+/* ── Hide Olivero's sticky-header toggle ─────────────────── */
+.sticky-header-toggle {
+  display: none;
+}
+
+/* ── Header: let the nav take all remaining width ────────── */
+.site-header__inner__container {
+  gap: 2rem;
+}
+
+.header-nav {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Primary nav: flat horizontal list ──────────────────── */
+.primary-nav__menu--level-1 {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+}
+
+.primary-nav__menu-item--level-1 {
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Plain text nav links */
+.primary-nav__menu-link--level-1 {
+  font-size: 0.9375rem !important;
+  font-weight: 400 !important;
+  color: #374151 !important;
+  padding: 0.25rem 0.875rem !important;
+  border: none !important;
+  background: none !important;
+  text-decoration: none !important;
+  border-radius: 0 !important;
+}
+
+.primary-nav__menu-link--level-1:hover,
+.primary-nav__menu-link--level-1:focus {
+  color: #1e3a8a !important;
+  background: none !important;
+  border: none !important;
+  text-decoration: none !important;
+}
+
+/* Active trail */
+.primary-nav__menu-link--level-1.primary-nav__menu-link--active-trail {
+  color: #1e3a8a !important;
+  font-weight: 500 !important;
+}
+
+/* ── Push CTA group to the far right ────────────────────── */
+.primary-nav__menu-item--level-1:has(> .nav-cta) {
+  margin-left: auto !important;
+}
+
+.primary-nav__menu-item--level-1:has(> .nav-cta)
+~ .primary-nav__menu-item--level-1:has(> .nav-cta) {
+  margin-left: 0.5rem !important;
+}
+
+/* ── CTA buttons — rectangular ──────────────────────────── */
 .primary-nav__menu-link.nav-cta {
-  border: 2px solid #3b82f6;
-  border-radius: 999px;
-  color: #3b82f6;
-  padding: 0.25rem 1rem;
-  transition: background 0.15s, color 0.15s;
+  display: inline-block !important;
+  padding: 0.5rem 1.25rem !important;
+  border-radius: 4px !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.primary-nav__menu-link.nav-cta:hover,
-.primary-nav__menu-link.nav-cta:focus {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
+/* Contact: outlined */
+.primary-nav__menu-link.nav-cta:not(.nav-cta--primary) {
+  background: transparent !important;
+  color: #1e3a5f !important;
+  border: 1.5px solid #1e3a5f !important;
 }
 
+.primary-nav__menu-link.nav-cta:not(.nav-cta--primary):hover,
+.primary-nav__menu-link.nav-cta:not(.nav-cta--primary):focus {
+  background: #1e3a5f !important;
+  color: #fff !important;
+}
+
+/* Book An Appointment: filled */
 .primary-nav__menu-link.nav-cta--primary {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: #fff;
+  background: #1e3a5f !important;
+  color: #fff !important;
+  border: 1.5px solid #1e3a5f !important;
 }
 
 .primary-nav__menu-link.nav-cta--primary:hover,
 .primary-nav__menu-link.nav-cta--primary:focus {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: #152a45 !important;
+  border-color: #152a45 !important;
+  color: #fff !important;
+}
+
+/* ── Inner span inside each link — remove Olivero padding ── */
+.primary-nav__menu-link-inner--level-1 {
+  padding: 0 !important;
 }

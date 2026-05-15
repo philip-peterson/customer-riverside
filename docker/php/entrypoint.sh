@@ -15,7 +15,7 @@ cd /var/www/html
 DRUSH="vendor/bin/drush --root=/var/www/html/web"
 
 HAS_TABLES=$($DRUSH sql:query \
-  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='config';" \
+  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='users';" \
   2>/dev/null || echo "0")
 
 IS_SETUP=$($DRUSH sql:query \
@@ -52,13 +52,13 @@ if [ "$IS_SETUP" != "1" ]; then
 
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
     echo "[entrypoint] Importing configuration from sync dir..."
-    $DRUSH config:import -y || echo "[entrypoint] WARNING: config import failed."
+    $DRUSH config:import --partial -y || echo "[entrypoint] WARNING: config import failed."
   fi
 
   echo "[entrypoint] Setup complete."
 else
   echo "[entrypoint] Setup already complete, importing configuration..."
-  $DRUSH config:import -y 2>/dev/null && \
+  $DRUSH config:import -y >/dev/null 2>&1 && \
     echo "[entrypoint] Config imported." || \
     echo "[entrypoint] No config to import, continuing."
 fi
