@@ -109,3 +109,11 @@
 .primary-nav__menu-link-inner--level-1 {
   padding: 0 !important;
 }
+
+/* ── Hide search, login, and site name from header ──────── */
+.block-search-narrow,
+.secondary-nav,
+.site-branding__name,
+.site-branding__slogan {
+  display: none !important;
+}
