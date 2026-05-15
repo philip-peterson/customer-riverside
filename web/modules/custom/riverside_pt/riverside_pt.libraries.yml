@@ -1,3 +1,13 @@
+front:
+  css:
+    theme:
+      css/front.css: {}
+
+navigation:
+  css:
+    theme:
+      css/nav.css: {}
+
 schedule:
   css:
     theme:

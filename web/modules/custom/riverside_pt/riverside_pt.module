@@ -4,6 +4,10 @@ use Drupal\Core\Breadcrumb\Breadcrumb;
 use Drupal\Core\Link;
 use Drupal\Core\Routing\RouteMatchInterface;
 
+function riverside_pt_page_attachments(array &$attachments): void {
+  $attachments['#attached']['library'][] = 'riverside_pt/navigation';
+}
+
 function riverside_pt_system_breadcrumb_alter(Breadcrumb &$breadcrumb, RouteMatchInterface $route_match, array $context): void {
   if ($route_match->getRouteName() === 'riverside_pt.booking') {
     $breadcrumb = new Breadcrumb();

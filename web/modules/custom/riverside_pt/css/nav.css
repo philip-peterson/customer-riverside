@@ -1,0 +1,26 @@
+.primary-nav__menu-link.nav-cta {
+  border: 2px solid #3b82f6;
+  border-radius: 999px;
+  color: #3b82f6;
+  padding: 0.25rem 1rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.primary-nav__menu-link.nav-cta:hover,
+.primary-nav__menu-link.nav-cta:focus {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.primary-nav__menu-link.nav-cta--primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.primary-nav__menu-link.nav-cta--primary:hover,
+.primary-nav__menu-link.nav-cta--primary:focus {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}

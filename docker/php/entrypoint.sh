@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 DB_HOST="${DB_HOST:-postgres}"
 DB_USER="${DB_USER:-drupal}"
@@ -19,39 +18,50 @@ HAS_TABLES=$($DRUSH sql:query \
   "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='config';" \
   2>/dev/null || echo "0")
 
-if [ "$HAS_TABLES" = "1" ]; then
-  echo "[entrypoint] Database populated, importing configuration..."
-  $DRUSH config:import -y 2>/dev/null && \
-    echo "[entrypoint] Config imported." || \
-    echo "[entrypoint] No config to import, continuing."
-  $DRUSH theme:enable claro_compact -y
-else
+IS_SETUP=$($DRUSH sql:query \
+  "SELECT COUNT(*) FROM config WHERE name='core.extension' AND data LIKE '%riverside_pt%';" \
+  2>/dev/null || echo "0")
+
+if [ "$HAS_TABLES" != "1" ]; then
   echo "[entrypoint] Fresh database, installing Drupal..."
   $DRUSH site:install standard \
     --site-name="${SITE_NAME:-Portfolio}" \
     --account-name=admin \
     --account-pass="${ADMIN_PASS:-admin}" \
-    -y
+    -y || { echo "[entrypoint] FATAL: site:install failed."; exit 1; }
   echo "[entrypoint] Drupal installed."
+fi
 
-  echo "[entrypoint] Enabling modules..."
-  $DRUSH en -y views views_ui field_ui text options link datetime
-  $DRUSH en -y webform webform_ui
-  $DRUSH en -y symfony_mailer
+if [ "$IS_SETUP" != "1" ]; then
+  echo "[entrypoint] Running setup (first boot or recovery from failed setup)..."
 
-  $DRUSH en -y riverside_pt
-  echo "[entrypoint] Modules enabled."
+  $DRUSH en -y views views_ui field_ui text options link datetime && \
+    echo "[entrypoint] Core modules enabled." || echo "[entrypoint] WARNING: core modules failed."
+  $DRUSH en -y webform webform_ui && \
+    echo "[entrypoint] Webform enabled." || echo "[entrypoint] WARNING: webform failed."
+  $DRUSH en -y symfony_mailer && \
+    echo "[entrypoint] Mailer enabled." || echo "[entrypoint] WARNING: symfony_mailer failed."
+  $DRUSH en -y riverside_pt && \
+    echo "[entrypoint] riverside_pt enabled." || echo "[entrypoint] WARNING: riverside_pt failed."
 
-  echo "[entrypoint] Setting themes..."
-  $DRUSH theme:enable olivero claro_compact
-  echo "[entrypoint] Themes set."
+  $DRUSH config:set system.site page.front /home -y && \
+    echo "[entrypoint] Front page set." || echo "[entrypoint] WARNING: front page config failed."
+
+  $DRUSH theme:enable olivero claro_compact -y && \
+    echo "[entrypoint] Themes set." || echo "[entrypoint] WARNING: theme enable failed."
 
   if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
     echo "[entrypoint] Importing configuration from sync dir..."
-    $DRUSH config:import -y
+    $DRUSH config:import -y || echo "[entrypoint] WARNING: config import failed."
   fi
-fi
 
+  echo "[entrypoint] Setup complete."
+else
+  echo "[entrypoint] Setup already complete, importing configuration..."
+  $DRUSH config:import -y 2>/dev/null && \
+    echo "[entrypoint] Config imported." || \
+    echo "[entrypoint] No config to import, continuing."
+fi
 
 echo "[entrypoint] Starting services..."
 exec supervisord -c /etc/supervisor/conf.d/supervisord.conf

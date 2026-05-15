@@ -1,6 +1,9 @@
 <?php
 
+use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
+use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\path_alias\Entity\PathAlias;
 use Drupal\user\Entity\Role;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Entity\FieldConfig;
@@ -140,4 +143,60 @@ function riverside_pt_install() {
          'required' => TRUE,
       ]),
    ], fn($entity) => $entity->save());
+
+   try {
+     _riverside_pt_build_navigation();
+   }
+   catch (\Exception $e) {
+     \Drupal::logger('riverside_pt')->error('Navigation setup failed: @msg', ['@msg' => $e->getMessage()]);
+   }
+
+   \Drupal::configFactory()->getEditable('system.site')
+     ->set('page.front', '/home')
+     ->save();
+}
+
+function _riverside_pt_build_navigation(): void {
+  $em = \Drupal::entityTypeManager();
+
+  // Remove whatever links Standard profile put in the main menu.
+  foreach ($em->getStorage('menu_link_content')->loadByProperties(['menu_name' => 'main']) as $link) {
+    $link->delete();
+  }
+
+  // Create placeholder basic pages.
+  foreach (['Services', 'About', 'FAQ', 'Contact'] as $title) {
+    $existing = $em->getStorage('node')->loadByProperties(['title' => $title, 'type' => 'page']);
+    if ($existing) {
+      continue;
+    }
+    $node = Node::create(['type' => 'page', 'title' => $title, 'status' => 1]);
+    $node->save();
+    PathAlias::create([
+      'path'     => '/node/' . $node->id(),
+      'alias'    => '/' . strtolower($title),
+      'langcode' => 'en',
+    ])->save();
+  }
+
+  // Build the primary navigation.
+  $defs = [
+    ['title' => 'Home',                'uri' => 'route:<front>',      'weight' => 0, 'class' => NULL],
+    ['title' => 'Services',            'uri' => 'internal:/services', 'weight' => 1, 'class' => NULL],
+    ['title' => 'About',               'uri' => 'internal:/about',    'weight' => 2, 'class' => NULL],
+    ['title' => 'FAQ',                 'uri' => 'internal:/faq',      'weight' => 3, 'class' => NULL],
+    ['title' => 'Contact',             'uri' => 'internal:/contact',  'weight' => 4, 'class' => 'nav-cta'],
+    ['title' => 'Book An Appointment', 'uri' => 'internal:/schedule', 'weight' => 5, 'class' => 'nav-cta nav-cta--primary'],
+  ];
+
+  foreach ($defs as $def) {
+    $options = $def['class'] ? ['attributes' => ['class' => explode(' ', $def['class'])]] : [];
+    MenuLinkContent::create([
+      'title'     => $def['title'],
+      'link'      => ['uri' => $def['uri'], 'options' => $options],
+      'menu_name' => 'main',
+      'weight'    => $def['weight'],
+      'enabled'   => TRUE,
+    ])->save();
+  }
 }
