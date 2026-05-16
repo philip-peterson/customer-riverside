@@ -65,6 +65,8 @@ else
     echo "[entrypoint] No config to import, continuing."
 fi
 
+npm run build --prefix /var/www/html >/dev/null 2>&1 && echo "[entrypoint] Tailwind built." || echo "[entrypoint] WARNING: Tailwind build failed."
+
 $DRUSH cache:rebuild >/dev/null 2>&1 && echo "[entrypoint] Cache rebuilt."
 
 echo "[entrypoint] Starting services..."

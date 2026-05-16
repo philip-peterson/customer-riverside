@@ -5,7 +5,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Routing\RouteMatchInterface;
 
 function riverside_pt_page_attachments(array &$attachments): void {
-  $attachments['#attached']['library'][] = 'riverside_pt/navigation';
+  $attachments['#attached']['library'][] = 'riverside_pt/app';
 }
 
 function riverside_pt_theme(): array {
@@ -17,6 +17,9 @@ function riverside_pt_theme(): array {
         'menu_items'   => [],
         'current_path' => NULL,
       ],
+    ],
+    'riverside_pt_home' => [
+      'variables' => [],
     ],
   ];
 }

@@ -1,12 +1,7 @@
-front:
+app:
   css:
     theme:
-      css/front.css: {}
-
-navigation:
-  css:
-    theme:
-      css/nav.css: {}
+      css/app.css: {}
   js:
     js/nav.js: {}
 

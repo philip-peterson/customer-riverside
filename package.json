@@ -1,0 +1,11 @@
+{
+  "name": "riverside-therapeutics",
+  "private": true,
+  "scripts": {
+    "watch": "tailwindcss -i ./web/modules/custom/riverside_pt/css/tailwind.css -o ./web/modules/custom/riverside_pt/css/app.css --watch",
+    "build": "tailwindcss -i ./web/modules/custom/riverside_pt/css/tailwind.css -o ./web/modules/custom/riverside_pt/css/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

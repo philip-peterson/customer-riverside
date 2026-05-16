@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    padding-top: 80px;
+  }
+  /* Neutralise any theme container constraints */
+  .page-wrapper {
+    max-width: none;
+    padding-inline: 0;
+  }
+  /* Hide Olivero/theme chrome we don't use */
+  .site-header,
+  .sticky-header-toggle,
+  .social-bar {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* Mobile nav: max-height slide can't be expressed with utilities alone */
+  @media (max-width: 767px) {
+    #rpt-main-nav {
+      flex: none;
+      position: absolute;
+      top: 5rem;
+      left: 0;
+      right: 0;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.3s ease, opacity 0.25s ease;
+    }
+    #rpt-main-nav.is-open {
+      max-height: 500px;
+      opacity: 1;
+    }
+    #rpt-main-nav ul {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  /* Hamburger open-state animation */
+  .rpt-header__hamburger[aria-expanded="true"] span:nth-child(1) {
+    width: 100% !important;
+    transform: translateY(10px) rotate(45deg);
+  }
+  .rpt-header__hamburger[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+  }
+  .rpt-header__hamburger[aria-expanded="true"] span:nth-child(3) {
+    width: 100% !important;
+    transform: translateY(-10px) rotate(-45deg);
+  }
+}

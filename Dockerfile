@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
     locales \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
@@ -33,7 +36,9 @@ WORKDIR /var/www/html
 # To use ../drupal instead, add it as a path repository in composer.json:
 #   "repositories": [{"type": "path", "url": "../drupal/core", "options": {"symlink": false}}]
 # then bump drupal/core-recommended to "11.x-dev@dev" and rebuild.
-COPY composer.json ./
+COPY composer.json package.json tailwind.config.js ./
+
+RUN npm install --include=dev
 
 RUN composer config repositories.drupal composer https://packages.drupal.org/8
 
@@ -58,6 +63,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 COPY web/sites/default/settings.php web/sites/default/settings.php
 COPY web/sites/default/files/ web/sites/default/files/
 COPY web/modules/custom/ web/modules/custom/
+
+RUN npm run build
 
 ARG FULLCALENDAR_VERSION=6.1.15
 RUN curl -fsSL "https://cdn.jsdelivr.net/npm/fullcalendar@${FULLCALENDAR_VERSION}/index.global.min.js" \

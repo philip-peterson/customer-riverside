@@ -1,14 +1,15 @@
-<header class="rpt-header" role="banner">
-  <div class="rpt-header__inner">
+<header class="rpt-header fixed top-0 left-0 right-0 z-50 h-20 bg-white shadow-sm" role="banner">
+  <div class="flex items-center h-full max-w-[1200px] mx-auto px-6 gap-8">
 
-    <a class="rpt-header__brand" href="{{ home_url }}">{{ site_name }}</a>
+    <a class="text-lg font-bold text-[#1e3a5f] no-underline whitespace-nowrap shrink-0 hover:text-[#1e3a8a]"
+       href="{{ home_url }}">{{ site_name }}</a>
 
-    <nav class="rpt-header__nav" id="rpt-main-nav" aria-label="Main navigation">
-      <ul class="rpt-header__list">
+    <nav class="flex-1 min-w-0" id="rpt-main-nav" aria-label="Main navigation">
+      <ul class="flex items-center list-none m-0 p-0 gap-1">
         {% for item in menu_items %}
           {% if not item.is_cta %}
-            <li class="rpt-header__item">
-              <a class="rpt-header__link{% if current_path == item.url %} is-active{% endif %}"
+            <li>
+              <a class="block text-[15px] text-gray-700 no-underline px-3.5 py-1 hover:text-[#1e3a8a]{% if current_path == item.url %} text-[#1e3a8a] font-medium{% endif %}"
                  href="{{ item.url }}">{{ item.title }}</a>
             </li>
           {% endif %}
@@ -18,29 +19,26 @@
         {% for item in menu_items %}
           {% if item.is_cta %}{% set has_cta = true %}{% endif %}
         {% endfor %}
-        
         {% if has_cta %}
-          <div class="rpt-header__items--cta">
+          <li class="ml-auto px-6">
             {% for item in menu_items %}
               {% if item.is_cta %}
-                <li class="rpt-header__item rpt-header__item--cta">
-                  <a class="rpt-header__cta" href="{{ item.url }}">{{ item.title }}</a>
-                </li>
+                <a class="inline-block px-5 py-2 bg-[#1e3a5f] text-white text-sm font-medium no-underline rounded border border-[#1e3a5f] whitespace-nowrap transition-colors hover:bg-[#152a45] hover:border-[#152a45] hover:text-white"
+                   href="{{ item.url }}">{{ item.title }}</a>
               {% endif %}
             {% endfor %}
-          </div>
+          </li>
         {% endif %}
-
       </ul>
     </nav>
 
-    <button class="rpt-header__hamburger"
+    <button class="rpt-header__hamburger flex md:hidden flex-col justify-center gap-1.5 w-11 h-11 p-2 bg-transparent border-0 cursor-pointer shrink-0 ml-auto"
             aria-expanded="false"
             aria-controls="rpt-main-nav"
             aria-label="Toggle navigation">
-      <span></span>
-      <span></span>
-      <span></span>
+      <span class="block h-1 bg-[#1e3a5f] rounded-[3px] w-[45%] transition-transform duration-[250ms] ease-in-out"></span>
+      <span class="block h-1 bg-[#1e3a5f] rounded-[3px] w-full transition-[transform,opacity] duration-200 ease-in-out"></span>
+      <span class="block h-1 bg-[#1e3a5f] rounded-[3px] w-[45%] self-end transition-transform duration-[250ms] ease-in-out"></span>
     </button>
 
   </div>

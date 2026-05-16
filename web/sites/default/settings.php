@@ -28,6 +28,10 @@ if ($postmark_key = getenv('POSTMARK_API_KEY')) {
 $config['system.performance']['css']['preprocess'] = FALSE;
 $config['system.performance']['js']['preprocess'] = FALSE;
 
+if ($base = getenv('BASE_URL')) {
+  $base_url = $base;
+}
+
 if ($trusted = getenv('TRUSTED_HOST')) {
   $settings['trusted_host_patterns'] = ['^' . preg_quote($trusted, '/') . '$'];
 } else {
