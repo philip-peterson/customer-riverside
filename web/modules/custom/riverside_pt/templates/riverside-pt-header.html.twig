@@ -13,13 +13,24 @@
             </li>
           {% endif %}
         {% endfor %}
+
+        {% set has_cta = false %}
         {% for item in menu_items %}
-          {% if item.is_cta %}
-            <li class="rpt-header__item rpt-header__item--cta">
-              <a class="rpt-header__cta" href="{{ item.url }}">{{ item.title }}</a>
-            </li>
-          {% endif %}
+          {% if item.is_cta %}{% set has_cta = true %}{% endif %}
         {% endfor %}
+        
+        {% if has_cta %}
+          <div class="rpt-header__items--cta">
+            {% for item in menu_items %}
+              {% if item.is_cta %}
+                <li class="rpt-header__item rpt-header__item--cta">
+                  <a class="rpt-header__cta" href="{{ item.url }}">{{ item.title }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+
       </ul>
     </nav>
 

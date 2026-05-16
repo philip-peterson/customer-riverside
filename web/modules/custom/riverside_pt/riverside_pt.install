@@ -185,7 +185,8 @@ function _riverside_pt_build_navigation(): void {
     ['title' => 'Services',            'uri' => 'internal:/services', 'weight' => 1, 'class' => NULL],
     ['title' => 'About',               'uri' => 'internal:/about',    'weight' => 2, 'class' => NULL],
     ['title' => 'FAQ',                 'uri' => 'internal:/faq',      'weight' => 3, 'class' => NULL],
-    ['title' => 'Contact',             'uri' => 'internal:/contact',  'weight' => 4, 'class' => 'nav-cta'],
+
+    ['title' => 'Contact',             'uri' => 'internal:/contact',  'weight' => 4, 'class' => 'nav-cta nav-cta--primary'],
     ['title' => 'Book An Appointment', 'uri' => 'internal:/schedule', 'weight' => 5, 'class' => 'nav-cta nav-cta--primary'],
   ];
 

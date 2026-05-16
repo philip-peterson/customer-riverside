@@ -3,6 +3,10 @@
   display: none;
 }
 
+.page-wrapper {
+  max-width: none;
+}
+
 /* ── Hero ───────────────────────────────────────────────────── */
 .rpt-hero {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
@@ -92,7 +96,7 @@
 /* ── Services section ───────────────────────────────────────── */
 .rpt-services {
   padding: 4rem 1.5rem;
-  background: #fff;
+  background: #f3f4f6;
 }
 
 .rpt-services__header {

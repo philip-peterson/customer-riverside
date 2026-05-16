@@ -56,7 +56,7 @@ function riverside_pt_preprocess_riverside_pt_header(array &$variables): void {
     $items[] = [
       'title'  => $title,
       'url'    => $url,
-      'is_cta' => ($title === 'Book An Appointment'),
+      'is_cta' => ($title === 'Book An Appointment' || $title === 'Contact'),
     ];
   }
   $variables['menu_items']   = $items;
