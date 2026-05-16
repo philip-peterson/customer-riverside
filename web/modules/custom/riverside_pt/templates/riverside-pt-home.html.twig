@@ -1,26 +1,29 @@
 <section class="relative bg-[#aac6c6] min-h-[560px]">
 
-  {# Box 1: Image — spacer 8% | image 58% | spacer 34% #}
+  {# Box 1: Image — full-bleed on mobile, offset on sm+ #}
   <div class="absolute inset-0 flex">
-    <div class="basis-[8%] grow-[2]"></div>
-    <div class="basis-[58%] grow self-stretch">
-      <img src="/modules/custom/riverside_pt/images/hero.jpg" alt="" class="w-full h-full object-cover" />
+    <div class="hidden sm:block sm:basis-[8%] sm:grow-[2]"></div>
+    <div class="basis-full sm:basis-[58%] sm:grow self-stretch">
+      <img src="/modules/custom/riverside_pt/images/hero.jpg" alt="" class="w-full h-full object-cover object-center" />
     </div>
-    <div class="basis-[34%] grow-[2]"></div>
+    <div class="hidden sm:block sm:basis-[34%] sm:grow-[2]"></div>
   </div>
 
+  {# Gradient overlay on mobile so text stays readable over the image #}
+  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent sm:hidden"></div>
+
   {# Box 2: Text — spacer 50% | text 38% | spacer 12% #}
-  <div class="relative flex min-h-[560px]">
-    <div class="basis-[50%] grow-[2]"></div>
-    <div class="basis-[38%] grow flex flex-col justify-center py-16 gap-6">
+  <div class="relative flex min-h-[560px] py-8">
+    <div class="hidden sm:block sm:basis-[50%] sm:grow-[2]"></div>
+    <div class="basis-full sm:basis-[38%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 pb-10 sm:pb-0 py-16 gap-6">
       <h1 class="text-[clamp(2rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-tight">Restore your strength.<br>Reclaim your life.</h1>
       <p class="text-white/80 text-lg leading-relaxed">Every new patient starts with a comprehensive diagnostic assessment. From there we build a personalized plan that may include sports rehabilitation, pre- or post-surgical recovery, or neurological physical therapy.</p>
       <div class="flex gap-4 flex-wrap">
-        <a href="/schedule" class="px-8 py-3 bg-[#4a7a8a] text-white text-sm font-medium no-underline transition-colors hover:bg-[#3a6a7a]">Book An Appointment</a>
-        <a href="/services" class="px-8 py-3 border border-white/60 text-white text-sm font-medium no-underline transition-colors hover:bg-white/10">View Our Services</a>
+        <a href="/schedule" class="w-full sm:w-auto text-center px-8 py-3 bg-[#4a7a8a] text-white text-sm font-medium no-underline transition-colors hover:bg-[#3a6a7a]">Book An Appointment</a>
+        <a href="/services" class="hidden sm:inline-block px-8 py-3 border border-white/60 text-white text-sm font-medium no-underline transition-colors hover:bg-white/10">View Our Services</a>
       </div>
     </div>
-    <div class="basis-[12%] grow-[2]"></div>
+    <div class="hidden sm:block sm:basis-[12%] sm:grow-[2]"></div>
   </div>
 
 </section>
