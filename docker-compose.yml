@@ -11,10 +11,10 @@ services:
       DB_USER: drupal
       DB_PASS: drupal
       SITE_NAME: "Riverside Therapeutics"
-      ADMIN_PASS: "${ADMIN_PASS:-admin}"
-      HASH_SALT: "${HASH_SALT:-replace-this-in-production-with-a-long-random-string}"
+      ADMIN_PASS: "${ADMIN_PASS:?ADMIN_PASS is required}"
+      HASH_SALT: "${HASH_SALT:?HASH_SALT is required}"
       DEBUG: "${DEBUG:-true}"
-      POSTMARK_API_KEY: "${POSTMARK_API_KEY:-}"
+      POSTMARK_API_KEY: "${POSTMARK_API_KEY:?POSTMARK_API_KEY is required}"
       BASE_URL: "${BASE_URL:-http://localhost:8080}"
     volumes:
       - ./web/sites/default/files:/var/www/html/web/sites/default/files
