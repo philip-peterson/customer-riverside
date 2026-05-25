@@ -44,13 +44,15 @@ if [ "$IS_SETUP" != "1" ]; then
   $DRUSH en -y riverside_pt && \
     echo "[entrypoint] riverside_pt enabled." || echo "[entrypoint] WARNING: riverside_pt failed."
 
-  $DRUSH theme:enable starterkit_theme claro_compact -y && \
-    $DRUSH config:set system.theme default starterkit_theme -y && \
-    $DRUSH config:set system.theme admin claro_compact -y && \
-    echo "[entrypoint] Themes set." || echo "[entrypoint] WARNING: theme enable failed."
-
   echo "[entrypoint] First-time setup complete."
 fi
+
+$DRUSH theme:enable starterkit_theme claro_compact -y && \
+  $DRUSH config:set system.theme default starterkit_theme -y && \
+  $DRUSH config:set system.theme admin claro_compact -y && \
+  echo "[entrypoint] Themes set." || echo "[entrypoint] WARNING: theme enable failed."
+$DRUSH config:set system.site page.front /home -y && \
+  echo "[entrypoint] Front page set." || echo "[entrypoint] WARNING: front page set failed."
 
 if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
   echo "[entrypoint] Importing configuration..."
