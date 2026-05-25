@@ -1,4 +1,9 @@
-<section class="relative bg-[#aac6c6] min-h-[560px]">
+<section class="
+  relative bg-[#89a0a0] md:bg-[red] lg:bg-[blue] min-h-[560px]
+  
+  /* This number, 78px is supposed to match the header height */
+  pt-[78px]
+">
 
   {# Box 1: Image — full-bleed on mobile, offset on sm+ #}
   <div class="absolute inset-0 flex">
@@ -13,54 +18,118 @@
   {# Gradient overlay on mobile so text stays readable over the image #}
   <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent sm:hidden"></div>
 
-  {# Box 2: Text — spacer 50% | text 38% | spacer 12% #}
+  {# Box 2: Text — spacer 50% | text 40% | spacer 10% #}
   <div class="relative flex min-h-[560px] py-8">
     <div class="hidden sm:block sm:basis-[50%] sm:grow-[2]"></div>
-    <div class="basis-full sm:basis-[38%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 pb-10 sm:pb-0 py-16 gap-6">
+    <div class="basis-full sm:basis-[40%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 sm:pb-0 gap-[1vw]">
       <h1
-        class="mt-0 mb-3 text-[clamp(2rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-tight [text-shadow:-56.21px_2.55px_10.22px_#0000001A]"
+        class="mt-0 mb-0 text-[clamp(1.5rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-tight [text-shadow:-56.21px_2.55px_10.22px_#0000001A]"
       >
         Restore your strength.<br>Reclaim your life.
       </h1>
       <p class="text-white/80 leading-tight text-[1.5vw]">Every new patient starts with a comprehensive diagnostic assessment. From there we build a personalized plan that may include sports rehabilitation, pre- or post-surgical recovery, or neurological physical therapy.</p>
-      <div class="flex gap-4 flex-wrap">
+      <div class="flex gap-4 flex-wrap items-center">
         <a
           href="/schedule"
-          class="w-full sm:w-auto text-center px-8 py-3 rounded-none bg-[#306f8e] text-white text-sm font-medium no-underline transition-colors hover:bg-[#3a6a7a]"
+          class="w-full sm:w-auto text-center text-[1vw] px-[4em] py-[1em] bg-[#306f8e] text-white font-medium no-underline transition-colors hover:bg-[#3a6a7a]"
         >Book An Appointment</a>
-        <a href="/services" class="hidden sm:inline-block px-8 py-3 border border-white/60 text-white text-sm font-medium no-underline transition-colors hover:bg-white/10">View Our Services</a>
+        <a
+          href="/services"
+          class="hidden sm:inline-block text-[1vw] px-[4em] py-[1em] border border-white/60 text-white font-medium no-underline transition-colors hover:bg-white/10"
+        >View Our Services</a>
       </div>
     </div>
-    <div class="hidden sm:block sm:basis-[12%] sm:grow-[2]"></div>
+    <div class="hidden sm:block sm:basis-[10%] sm:grow-[2]"></div>
   </div>
 
 </section>
 
-<section class="py-16 px-6 bg-gray-100">
-  <div class="text-center mb-12">
-    <h2 class="text-3xl font-bold text-blue-900 mb-1.5">Bringing Relief</h2>
-    <p class="text-[17px] text-gray-500">Our wide range of services</p>
+<section class="py-16 px-6 bg-white">
+  <div class="max-w-[1040px] mx-auto mb-12">
+    <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold text-center mb-3">Bringing Relief</p>
+    <h2 class="text-[2.75rem] font-serif font-normal text-gray-900 leading-tight">Our Wide Range of Physical Therapy Services</h2>
   </div>
-  <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 max-w-[1040px] mx-auto">
-    <div class="flex flex-col gap-3 border border-gray-200 rounded-lg p-6 bg-white">
-      <h3 class="text-[17px] font-semibold text-gray-900">Diagnostic Evaluation</h3>
-      <p class="text-[15px] text-gray-500 leading-relaxed flex-1">Comprehensive assessment to identify the root cause of your pain and build a personalized recovery plan.</p>
-      <a href="/services" class="inline-block px-4 py-2 text-[14px] text-blue-500 border border-blue-500 rounded no-underline transition-colors hover:bg-blue-500 hover:text-white">More Info</a>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 max-w-[1040px] mx-auto">
+    <div class="flex flex-col border border-[#b8d4dc] bg-white overflow-hidden">
+      <img src="/modules/custom/riverside_pt/images/panels/1.jpg" alt="Diagnostic assessment" class="w-full h-48 object-cover" />
+      <div class="flex flex-col gap-4 p-6 flex-1">
+        <h3 class="text-2xl font-normal text-gray-900">Diagnostic Assessment</h3>
+        <p class="text-[15px] text-gray-600 leading-relaxed flex-1">Your recovery starts with clarity. We perform a thorough evaluation of your condition, movement, and goals to create a precise, personalized treatment plan from day one.</p>
+        <a href="/services" class="inline-flex items-center gap-3 px-5 py-3 bg-[#2d5f7a] text-white text-[15px] font-medium no-underline hover:bg-[#1e4a60]">More Info &rarr;</a>
+      </div>
     </div>
-    <div class="flex flex-col gap-3 border border-gray-200 rounded-lg p-6 bg-white">
-      <h3 class="text-[17px] font-semibold text-gray-900">Sports Rehabilitation</h3>
-      <p class="text-[15px] text-gray-500 leading-relaxed flex-1">Targeted programs to help athletes recover from injury and return to peak performance safely.</p>
-      <a href="/services" class="inline-block px-4 py-2 text-[14px] text-blue-500 border border-blue-500 rounded no-underline transition-colors hover:bg-blue-500 hover:text-white">More Info</a>
+    <div class="flex flex-col border border-[#b8d4dc] bg-white overflow-hidden">
+      <img src="/modules/custom/riverside_pt/images/panels/2.jpg" alt="Sports rehabilitation" class="w-full h-48 object-cover" />
+      <div class="flex flex-col gap-4 p-6 flex-1">
+        <h3 class="text-2xl font-normal text-gray-900">Sports Rehabilitation</h3>
+        <p class="text-[15px] text-gray-600 leading-relaxed flex-1">We help athletes recover from injury and return to peak performance with targeted, sport-specific programs built around your body and your goals.</p>
+        <a href="/services" class="inline-flex items-center gap-3 px-5 py-3 bg-[#2d5f7a] text-white text-[15px] font-medium no-underline hover:bg-[#1e4a60]">More Info &rarr;</a>
+      </div>
     </div>
-    <div class="flex flex-col gap-3 border border-gray-200 rounded-lg p-6 bg-white">
-      <h3 class="text-[17px] font-semibold text-gray-900">Pre/Post-Surgical Rehab</h3>
-      <p class="text-[15px] text-gray-500 leading-relaxed flex-1">Expert care before and after surgery to maximize recovery outcomes and restore full function.</p>
-      <a href="/services" class="inline-block px-4 py-2 text-[14px] text-blue-500 border border-blue-500 rounded no-underline transition-colors hover:bg-blue-500 hover:text-white">More Info</a>
+    <div class="flex flex-col border border-[#b8d4dc] bg-white overflow-hidden">
+      <img src="/modules/custom/riverside_pt/images/panels/3.jpg" alt="Pre and post-surgical rehab" class="w-full h-48 object-cover" />
+      <div class="flex flex-col gap-4 p-6 flex-1">
+        <h3 class="text-2xl font-normal text-gray-900">Pre/Post-Surgical Rehab</h3>
+        <p class="text-[15px] text-gray-600 leading-relaxed flex-1">Expert care before and after surgery to reduce recovery time, minimize complications, and restore full strength and function.</p>
+        <a href="/services" class="inline-flex items-center gap-3 px-5 py-3 bg-[#2d5f7a] text-white text-[15px] font-medium no-underline hover:bg-[#1e4a60]">More Info &rarr;</a>
+      </div>
     </div>
-    <div class="flex flex-col gap-3 border border-gray-200 rounded-lg p-6 bg-white">
-      <h3 class="text-[17px] font-semibold text-gray-900">Neurological Physical Therapy</h3>
-      <p class="text-[15px] text-gray-500 leading-relaxed flex-1">Specialized therapy for nervous system conditions, helping you regain strength and independence.</p>
-      <a href="/services" class="inline-block px-4 py-2 text-[14px] text-blue-500 border border-blue-500 rounded no-underline transition-colors hover:bg-blue-500 hover:text-white">More Info</a>
+    <div class="flex flex-col border border-[#b8d4dc] bg-white overflow-hidden">
+      <img src="/modules/custom/riverside_pt/images/panels/4.jpg" alt="Neurological physical therapy" class="w-full h-48 object-cover" />
+      <div class="flex flex-col gap-4 p-6 flex-1">
+        <h3 class="text-2xl font-normal text-gray-900">Neurological Therapy</h3>
+        <p class="text-[15px] text-gray-600 leading-relaxed flex-1">Specialized therapy for nervous system conditions — helping you rebuild strength, coordination, and independence at every stage of recovery.</p>
+        <a href="/services" class="inline-flex items-center gap-3 px-5 py-3 bg-[#2d5f7a] text-white text-[15px] font-medium no-underline hover:bg-[#1e4a60]">More Info &rarr;</a>
+      </div>
     </div>
+  </div>
+</section>
+
+<section class="bg-[#dde8f0] py-20 px-6 overflow-hidden">
+  <div class="max-w-[1200px] mx-auto flex flex-col md:flex-row gap-12 md:gap-20 items-center">
+
+    <div class="flex-1 flex flex-col gap-8 min-w-0">
+      <h2 class="text-[clamp(2.5rem,4vw,3.75rem)] font-serif font-normal text-gray-900 leading-[1.1]">Our mission is to help you reclaim your body.</h2>
+      <p class="text-base text-gray-600 leading-relaxed max-w-lg">Every new patient begins with a comprehensive diagnostic assessment. From there, we create a fully personalized treatment plan tailored to your goals — whether that means returning to sport, recovering from surgery, or restoring neurological function.</p>
+      <div class="flex gap-12 pt-4">
+        <div>
+          <p class="text-[4.5rem] font-serif text-[#306f8e] leading-none">15</p>
+          <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mt-2">Years Open</p>
+        </div>
+        <div>
+          <p class="text-[4.5rem] font-serif text-[#306f8e] leading-none">300</p>
+          <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mt-2">Patients Served</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full md:w-[46%] shrink-0">
+      <img src="/modules/custom/riverside_pt/images/neck.jpg" alt="Patient receiving physical therapy" class="w-full h-[420px] md:h-[520px] object-cover" />
+    </div>
+
+  </div>
+</section>
+
+<section class="py-16 bg-white">
+  <div class="max-w-[1040px] mx-auto px-6 mb-8">
+    <h2 class="text-3xl font-bold text-blue-900 mb-1.5">Our Facility</h2>
+    <p class="text-[17px] text-gray-500">A look inside our clinic</p>
+  </div>
+  <rpt-carousel class="block"></rpt-carousel>
+</section>
+
+<section class="py-24 px-6 bg-white">
+  <div class="max-w-[680px] mx-auto">
+    <h2 class="text-[clamp(2.5rem,5vw,4rem)] font-serif font-normal text-gray-800 mb-10">Book An Appointment</h2>
+    <fieldset class="border border-gray-300 rounded-lg px-4 pb-4 pt-0">
+      <legend class="text-sm text-gray-400 px-2">Appointment Type</legend>
+      <select class="w-full text-gray-700 text-base bg-transparent outline-none py-2 cursor-pointer">
+        <option value="">— Select A Service —</option>
+        <option value="diagnostic">Diagnostic Assessment</option>
+        <option value="sports">Sports Rehabilitation</option>
+        <option value="surgical">Pre/Post-Surgical Rehab</option>
+        <option value="neuro">Neurological Therapy</option>
+      </select>
+    </fieldset>
   </div>
 </section>

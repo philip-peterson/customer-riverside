@@ -3,11 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  @media (min-width: theme('screens.md')) {
-    body {
-      padding-top: 80px;
-    }
-  }
   /* Neutralise any theme container constraints */
   .page-wrapper {
     max-width: none;
