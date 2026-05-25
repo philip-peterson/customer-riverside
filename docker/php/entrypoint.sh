@@ -69,5 +69,16 @@ npm run build --prefix /var/www/html >/dev/null 2>&1 && echo "[entrypoint] Tailw
 
 $DRUSH cache:rebuild >/dev/null 2>&1 && echo "[entrypoint] Cache rebuilt."
 
+if [ "${DEBUG:-false}" = "true" ]; then
+  NGINX_CSS_CACHE='expires off; add_header Cache-Control "no-store";'
+else
+  NGINX_CSS_CACHE='expires max;'
+fi
+export NGINX_CSS_CACHE
+envsubst '${NGINX_CSS_CACHE}' \
+  < /etc/nginx/conf.d/default.conf.template \
+  > /etc/nginx/conf.d/default.conf
+echo "[entrypoint] nginx cache mode: ${DEBUG:-false} = debug."
+
 echo "[entrypoint] Starting services..."
 exec supervisord -c /etc/supervisor/conf.d/supervisord.conf

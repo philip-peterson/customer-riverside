@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    padding-top: 80px;
+  @media (min-width: theme('screens.md')) {
+    body {
+      padding-top: 80px;
+    }
   }
   /* Neutralise any theme container constraints */
   .page-wrapper {
@@ -21,15 +23,14 @@
 
 @layer components {
   /* Mobile nav: max-height slide can't be expressed with utilities alone */
-  @media (max-width: 767px) {
+  @media (max-width: calc(theme('screens.md') - 1px)) {
     #rpt-main-nav {
       flex: none;
-      position: absolute;
-      top: 5rem;
-      left: 0;
-      right: 0;
+      position: static;
+      order: 10;
+      width: 100%;
       background: #fff;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-top: 1px solid #e5e7eb;
       max-height: 0;
       overflow: hidden;
       opacity: 0;

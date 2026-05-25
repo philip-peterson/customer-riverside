@@ -5,7 +5,11 @@ module.exports = {
     './web/modules/custom/riverside_pt/src/**/*.php',
   ],
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        'md': '920px',
+      },
+    },
   },
   plugins: [],
 }

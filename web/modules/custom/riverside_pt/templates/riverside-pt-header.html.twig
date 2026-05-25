@@ -1,5 +1,5 @@
-<header class="rpt-header fixed top-0 left-0 right-0 z-50 h-20 bg-white shadow-sm" role="banner">
-  <div class="flex items-center h-full max-w-[1200px] mx-auto px-6 gap-8">
+<header class="rpt-header relative md:fixed md:top-0 md:left-0 md:right-0 md:z-50 md:h-20 bg-white shadow-sm" role="banner">
+  <div class="flex flex-wrap items-center min-h-[5rem] md:h-full max-w-[1200px] mx-auto px-6 gap-y-0 gap-x-8 md:gap-8">
 
     <a class="text-lg font-bold text-[#1e3a5f] no-underline whitespace-nowrap shrink-0 hover:text-[#1e3a8a]"
        href="{{ home_url }}">{{ site_name }}</a>
@@ -23,7 +23,7 @@
           <li class="ml-auto px-6">
             {% for item in menu_items %}
               {% if item.is_cta %}
-                <a class="inline-block px-5 py-2 bg-[#1e3a5f] text-white text-sm font-medium no-underline rounded border border-[#1e3a5f] whitespace-nowrap transition-colors hover:bg-[#152a45] hover:border-[#152a45] hover:text-white"
+                <a class="inline-block px-5 py-2 rounded-none  bg-[#306f8e] text-white text-sm font-medium no-underline rounded border border-[#1e3a5f] whitespace-nowrap transition-colors hover:bg-[#152a45] hover:border-[#152a45] hover:text-white"
                    href="{{ item.url }}">{{ item.title }}</a>
               {% endif %}
             {% endfor %}

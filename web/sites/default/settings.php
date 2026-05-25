@@ -28,6 +28,13 @@ if ($postmark_key = getenv('POSTMARK_API_KEY')) {
 $config['system.performance']['css']['preprocess'] = FALSE;
 $config['system.performance']['js']['preprocess'] = FALSE;
 
+if (getenv('DEBUG')) {
+  $settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
+  $settings['cache']['bins']['render'] = 'cache.backend.null';
+  $settings['cache']['bins']['dynamic_page_cache'] = 'cache.backend.null';
+  $settings['cache']['bins']['page'] = 'cache.backend.null';
+}
+
 if ($base = getenv('BASE_URL')) {
   $base_url = $base;
 }

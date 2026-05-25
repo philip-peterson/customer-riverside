@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     locales \
     curl \
+    gettext-base \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -73,7 +74,7 @@ COPY config/sync/ config/sync/
 
 # Debian nginx runs as www-data (matches php-fpm), config in conf.d/
 RUN rm -f /etc/nginx/sites-enabled/default
-COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf.template
 
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/entrypoint.sh /entrypoint.sh

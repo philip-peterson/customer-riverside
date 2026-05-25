@@ -3,9 +3,10 @@
   {# Box 1: Image — full-bleed on mobile, offset on sm+ #}
   <div class="absolute inset-0 flex">
     <div class="hidden sm:block sm:basis-[8%] sm:grow-[2]"></div>
-    <div class="basis-full sm:basis-[58%] sm:grow self-stretch">
-      <img src="/modules/custom/riverside_pt/images/hero.jpg" alt="" class="w-full h-full object-cover object-center" />
-    </div>
+    <img
+      src="/modules/custom/riverside_pt/images/hero.jpg"
+      alt="A man helps a woman in a wheelchair"
+      class="basis-full sm:basis-[58%] sm:grow min-w-0 self-center object-cover object-[center_0%] max-h-[calc(100%_-_100px)]" />
     <div class="hidden sm:block sm:basis-[34%] sm:grow-[2]"></div>
   </div>
 
@@ -16,10 +17,17 @@
   <div class="relative flex min-h-[560px] py-8">
     <div class="hidden sm:block sm:basis-[50%] sm:grow-[2]"></div>
     <div class="basis-full sm:basis-[38%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 pb-10 sm:pb-0 py-16 gap-6">
-      <h1 class="text-[clamp(2rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-tight">Restore your strength.<br>Reclaim your life.</h1>
-      <p class="text-white/80 text-lg leading-relaxed">Every new patient starts with a comprehensive diagnostic assessment. From there we build a personalized plan that may include sports rehabilitation, pre- or post-surgical recovery, or neurological physical therapy.</p>
+      <h1
+        class="mt-0 mb-3 text-[clamp(2rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-tight [text-shadow:-56.21px_2.55px_10.22px_#0000001A]"
+      >
+        Restore your strength.<br>Reclaim your life.
+      </h1>
+      <p class="text-white/80 leading-tight text-[1.5vw]">Every new patient starts with a comprehensive diagnostic assessment. From there we build a personalized plan that may include sports rehabilitation, pre- or post-surgical recovery, or neurological physical therapy.</p>
       <div class="flex gap-4 flex-wrap">
-        <a href="/schedule" class="w-full sm:w-auto text-center px-8 py-3 bg-[#4a7a8a] text-white text-sm font-medium no-underline transition-colors hover:bg-[#3a6a7a]">Book An Appointment</a>
+        <a
+          href="/schedule"
+          class="w-full sm:w-auto text-center px-8 py-3 rounded-none bg-[#306f8e] text-white text-sm font-medium no-underline transition-colors hover:bg-[#3a6a7a]"
+        >Book An Appointment</a>
         <a href="/services" class="hidden sm:inline-block px-8 py-3 border border-white/60 text-white text-sm font-medium no-underline transition-colors hover:bg-white/10">View Our Services</a>
       </div>
     </div>

@@ -13,10 +13,13 @@ services:
       SITE_NAME: "Riverside Therapeutics"
       ADMIN_PASS: "${ADMIN_PASS:-admin}"
       HASH_SALT: "${HASH_SALT:-replace-this-in-production-with-a-long-random-string}"
+      DEBUG: "${DEBUG:-true}"
       POSTMARK_API_KEY: "${POSTMARK_API_KEY:-}"
       BASE_URL: "${BASE_URL:-http://localhost:8080}"
     volumes:
       - ./web/sites/default/files:/var/www/html/web/sites/default/files
+      - ./web/sites/default/settings.php:/var/www/html/web/sites/default/settings.php
+      - ./web/sites/development.services.yml:/var/www/html/web/sites/development.services.yml
       - ./web/modules/custom:/var/www/html/web/modules/custom
     depends_on:
       postgres:
