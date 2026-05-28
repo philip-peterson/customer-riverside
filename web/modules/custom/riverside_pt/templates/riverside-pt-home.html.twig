@@ -1,12 +1,12 @@
 <div class="bg-[linear-gradient(180deg,#83A1A1_0%,#86AAB6_100%)] pt-px">
   <section class="
-    relative mt-[78px] min-h-[480px]
+    relative md:mt-[78px] min-h-[480px]
     
-    /* This number, 78px is supposed to match the header height */
+    /* This number, 78px is supposed to match the header height (only when header is fixed) */
   ">
 
     {# Box 1: Image — full-bleed on mobile, offset on sm+ #}
-    <div class="absolute inset-0 flex pt-8 pb-8">
+    <div class="absolute inset-0 flex sm:pt-8 sm:pb-8">
       <div class="hidden sm:block sm:basis-[8%] sm:grow-[2]"></div>
       <img
         src="/modules/custom/riverside_pt/images/hero.jpg"
@@ -19,23 +19,23 @@
     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent sm:hidden"></div>
 
     {# Box 2: Text — spacer 50% | text 40% | spacer 10% #}
-    <div class="relative flex min-h-[480px] py-4">
+    <div class="relative flex min-h-[480px] pt-0 pb-4">
       <div class="hidden sm:block sm:basis-[50%] sm:grow-[2]"></div>
       <div class="basis-full sm:basis-[40%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 sm:pb-0 gap-[1vw]">
         <h1
-          class="mt-0 mb-[1vw] text-[clamp(1.5rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-tight [text-shadow:-56.21px_2.55px_10.22px_#0000001A]"
+          class="mt-0 mb-[1vw] text-[clamp(1.5rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-none [text-shadow:-56.21px_2.55px_10.22px_#0000001A]"
         >
           Restore your strength.<br>Reclaim your life.
         </h1>
-        <p class="text-white/80 leading-tight text-[1.5vw]">Every new patient starts with a comprehensive diagnostic assessment. From there we build a personalized plan that may include sports rehabilitation, pre- or post-surgical recovery, or neurological physical therapy.</p>
+        <p class="text-white/80 leading-tight text-[clamp(1rem,2vw,1.5vw)]">Every new patient starts with a comprehensive diagnostic assessment. From there we build a personalized plan that may include sports rehabilitation, pre- or post-surgical recovery, or neurological physical therapy.</p>
         <div class="flex gap-4 flex-wrap items-center mt-[2vw]">
           <a
             href="/schedule"
-            class="w-full sm:w-auto text-center text-[1vw] px-[4em] py-[1em] bg-[#306f8e] text-white font-medium no-underline transition-colors hover:bg-[#1f5a6e]"
+            class="w-full sm:w-auto text-center max-sm:text-sm sm:text-[clamp(0.25rem,1vw,1.25vw)] px-[4em] py-[1em] bg-[#306f8e] text-white font-medium no-underline transition-colors border-2 border-[#306f8e] hover:bg-[#1f5a6e] hover:border-[#1f5a6e]"
           >Book An Appointment</a>
           <a
             href="/services"
-            class="hidden sm:inline-block text-[1vw] px-[4em] py-[1em] border border-white/60 text-white font-medium no-underline transition-colors hover:bg-white/10"
+            class="hidden sm:inline-block text-[clamp(0.25rem,1vw,1.25vw)] px-[4em] py-[1em] bg-[#86AAB6] text-white font-medium no-underline transition-colors border-2 border-white hover:bg-[#6f8f96]"
           >View Our Services</a>
         </div>
       </div>

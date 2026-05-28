@@ -1,1 +1,6 @@
-  docker buildx build --platform linux/amd64,linux/arm64 -t forge.quinefoundation.com/ironmagma/riverside:latest --push .                                                
+#!/usr/bin/env bash
+# Convenience wrapper for the Makefile
+set -euo pipefail
+
+make docker-build-push "$@"
+
