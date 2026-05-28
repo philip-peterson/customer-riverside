@@ -8,7 +8,10 @@ module.exports = {
   theme: {
     extend: {
       screens: {
-        'md': '920px',
+        // Adjusted for current hybrid usage (hero changes at sm, header/layout at md)
+        'sm': '768px',   // iPad portrait + when hero layout activates
+        'md': '1024px',  // Desktop start (header fixed, mission row, etc.)
+        'lg': '1280px',  // Large desktop
       },
       fontFamily: {
         hedvig: ['Hedvig Letters Sans', 'sans-serif'],
