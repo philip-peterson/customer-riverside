@@ -7,10 +7,37 @@ A Drupal 11 site for Riverside Physical Therapy. Nearly all frontend work lives 
 ## Running locally
 
 ```bash
-docker compose up        # starts app on http://localhost:8080
+docker compose up        # starts app on http://localhost:8080 (full DB wipe + rebuild from code by default)
 docker compose exec app drush cr   # clear Drupal cache
 npm run watch            # Tailwind CSS watcher (run on host, not in container)
 npm run build            # minified production build
+```
+
+### Database & site rebuild behavior
+
+By default, **every** `docker compose up` performs a full database wipe followed by a complete reinstall + rebuild of the site structure from code:
+
+- Drops the database
+- Runs `drush site:install standard`
+- Enables modules (including `riverside_pt`)
+- Runs `drush riverside:rebuild` (the single source of truth for content types, fields, roles, and navigation)
+
+This means the site is **always** built exactly the same way from the code in `riverside_pt.install` and the Drush command. There is no persistent data between restarts unless you opt out.
+
+**Faster iteration (preserve the database):**
+
+```bash
+DRUPAL_FAST=1 docker compose up
+```
+
+This skips the wipe + `site:install` but still runs `drush riverside:rebuild` and the rest of the startup steps. Use this when you want quicker starts during active development and don't need a completely clean slate.
+
+You can also run the rebuild manually at any time:
+
+```bash
+docker compose exec app drush riverside:rebuild
+# or the short alias
+docker compose exec app drush rrb
 ```
 
 The custom module directory is volume-mounted, so template/CSS/JS edits are live without rebuilding the Docker image. `settings.php` and `development.services.yml` are also volume-mounted.

@@ -8,6 +8,8 @@ A Drupal-based appointment scheduling site for booking sessions between patients
 docker compose up --build
 ```
 
+**Default behavior**: Every start performs a full database wipe + rebuilds the entire site from code (content types, fields, menu, etc.). See CLAUDE.md for details and the `DRUPAL_FAST=1` escape hatch for faster iteration.
+
 Admin login: `admin` / `admin` at `/user/login`
 
 ## Makefile commands

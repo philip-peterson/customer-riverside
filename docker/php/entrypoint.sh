@@ -22,12 +22,15 @@ cd /var/www/html
 
 DRUSH="vendor/bin/drush --root=/var/www/html/web"
 
-HAS_TABLES=$($DRUSH sql:query \
-  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='users';" \
-  2>/dev/null || echo "0")
+echo "[entrypoint] Preparing database..."
 
-if [ "$HAS_TABLES" != "1" ]; then
-  echo "[entrypoint] Fresh database, installing Drupal..."
+if [ "${DRUPAL_FAST:-}" = "1" ]; then
+  echo "[entrypoint] DRUPAL_FAST=1 — skipping database wipe and full site reinstall."
+else
+  echo "[entrypoint] Full rebuild mode (default). Dropping database..."
+  $DRUSH sql:drop -y || true
+
+  echo "[entrypoint] Installing Drupal (standard profile)..."
   $DRUSH site:install standard \
     --site-name="$SITE_NAME" \
     --account-name=admin \
@@ -46,18 +49,17 @@ $DRUSH en -y symfony_mailer && \
 $DRUSH en -y riverside_pt && \
   echo "[entrypoint] riverside_pt enabled." || echo "[entrypoint] WARNING: riverside_pt failed."
 
+echo "[entrypoint] Rebuilding site structure from code (riverside:rebuild)..."
+$DRUSH riverside:rebuild || echo "[entrypoint] WARNING: riverside:rebuild encountered an issue."
+
+# Re-assert a few key pieces (cheap and safe).
 $DRUSH theme:enable starterkit_theme claro_compact -y && \
   $DRUSH config:set system.theme default starterkit_theme -y && \
   $DRUSH config:set system.theme admin claro_compact -y && \
   echo "[entrypoint] Themes set." || echo "[entrypoint] WARNING: theme enable failed."
+
 $DRUSH config:set system.site page.front /home -y && \
   echo "[entrypoint] Front page set." || echo "[entrypoint] WARNING: front page set failed."
-
-if ls /var/www/html/config/sync/*.yml >/dev/null 2>&1; then
-  echo "[entrypoint] Importing configuration..."
-  $DRUSH config:import -y && \
-    echo "[entrypoint] Config imported." || echo "[entrypoint] WARNING: config import failed."
-fi
 
 npm run build --prefix /var/www/html >/dev/null 2>&1 && echo "[entrypoint] Tailwind built." || echo "[entrypoint] WARNING: Tailwind build failed."
 

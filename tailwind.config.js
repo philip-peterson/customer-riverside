@@ -10,6 +10,9 @@ module.exports = {
       screens: {
         'md': '920px',
       },
+      fontFamily: {
+        hedvig: ['Hedvig Letters Sans', 'sans-serif'],
+      },
     },
   },
   plugins: [],

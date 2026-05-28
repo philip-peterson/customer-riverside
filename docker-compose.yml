@@ -16,6 +16,10 @@ services:
       DEBUG: "${DEBUG:-true}"
       POSTMARK_API_KEY: "${POSTMARK_API_KEY:?POSTMARK_API_KEY is required}"
       BASE_URL: "${BASE_URL:-http://localhost:8080}"
+      # DRUPAL_FAST=1 skips the automatic full database wipe + reinstall on every start.
+      # Use this for faster iteration when you don't want a completely fresh site.
+      # Default (no flag) = always wipe DB and rebuild everything from code.
+      DRUPAL_FAST: "${DRUPAL_FAST:-}"
     volumes:
       - ./web/sites/default/files:/var/www/html/web/sites/default/files
       - ./web/sites/default/settings.php:/var/www/html/web/sites/default/settings.php

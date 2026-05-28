@@ -8,146 +8,181 @@ use Drupal\user\Entity\Role;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Entity\FieldConfig;
 
+/**
+ * Implements hook_install().
+ *
+ * Delegates to the rebuild function so that normal module installs and
+ * container rebuilds both produce the same result.
+ */
 function riverside_pt_install() {
-  // Pass 1: types, roles, and field storages (no inter-dependencies).
-  NodeType::create([
-    'type' => 'appointment',
-    'name' => 'Appointment',
-    'description' => 'A booking between a Patient and a Provider at a particular time.',
-    'new_revision' => FALSE,
-    'display_submitted' => FALSE,
-  ])->save();
+  _riverside_pt_rebuild();
+}
 
-  NodeType::create([
-    'type' => 'provider_availability',
-    'name' => 'Provider Availability',
-    'description' => 'A window of time during which a Provider is available for appointments.',
-    'new_revision' => FALSE,
-    'display_submitted' => FALSE,
-  ])->save();
+/**
+ * Rebuilds the Riverside PT site structure from code.
+ *
+ * This function is idempotent and can be safely called multiple times.
+ * It is the single source of truth for content types, fields, roles,
+ * and navigation used by the Docker entrypoint.
+ */
+function _riverside_pt_rebuild(): void {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $storage_node_type = $entity_type_manager->getStorage('node_type');
+  $storage_role = $entity_type_manager->getStorage('user_role');
+  $storage_field_storage = $entity_type_manager->getStorage('field_storage_config');
+  $storage_field_config = $entity_type_manager->getStorage('field_config');
 
-  Role::create(['id' => 'provider', 'label' => 'Provider'])->save();
+  // --- Content types (idempotent) ---
+  if (!$storage_node_type->load('appointment')) {
+    NodeType::create([
+      'type' => 'appointment',
+      'name' => 'Appointment',
+      'description' => 'A booking between a Patient and a Provider at a particular time.',
+      'new_revision' => FALSE,
+      'display_submitted' => FALSE,
+    ])->save();
+  }
 
-  FieldStorageConfig::create([
-    'field_name'  => 'field_appointment_date',
-    'entity_type' => 'node',
-    'type'        => 'datetime',
-    'settings'    => ['datetime_type' => 'datetime'],
-  ])->save();
+  if (!$storage_node_type->load('provider_availability')) {
+    NodeType::create([
+      'type' => 'provider_availability',
+      'name' => 'Provider Availability',
+      'description' => 'A window of time during which a Provider is available for appointments.',
+      'new_revision' => FALSE,
+      'display_submitted' => FALSE,
+    ])->save();
+  }
 
-  FieldStorageConfig::create([
-    'field_name'  => 'field_duration_minutes',
-    'entity_type' => 'node',
-    'type'        => 'integer',
-  ])->save();
+  // --- Role (idempotent) ---
+  if (!$storage_role->load('provider')) {
+    Role::create(['id' => 'provider', 'label' => 'Provider'])->save();
+  }
 
-  FieldStorageConfig::create([
-    'field_name'  => 'field_service_type',
-    'entity_type' => 'node',
-    'type'        => 'list_string',
-    'settings'    => [
-      'allowed_values' => [
-        'diagnostic'              => 'Diagnostic',
-        'sports_rehab'            => 'Sports Rehab',
-        'pre_post_surgical_rehab' => 'Pre/Post-Surgical Rehab',
-        'neurological_pt'         => 'Neurological PT',
+  // --- Field storages (idempotent) ---
+  $field_storages = [
+    'field_appointment_date' => [
+      'entity_type' => 'node',
+      'type'        => 'datetime',
+      'settings'    => ['datetime_type' => 'datetime'],
+    ],
+    'field_duration_minutes' => [
+      'entity_type' => 'node',
+      'type'        => 'integer',
+    ],
+    'field_service_type' => [
+      'entity_type' => 'node',
+      'type'        => 'list_string',
+      'settings'    => [
+        'allowed_values' => [
+          'diagnostic'              => 'Diagnostic',
+          'sports_rehab'            => 'Sports Rehab',
+          'pre_post_surgical_rehab' => 'Pre/Post-Surgical Rehab',
+          'neurological_pt'         => 'Neurological PT',
+        ],
       ],
     ],
-  ])->save();
+    'field_provider' => [
+      'entity_type' => 'node',
+      'type'        => 'entity_reference',
+      'settings'    => ['target_type' => 'user'],
+    ],
+    'field_start_datetime' => [
+      'entity_type' => 'node',
+      'type'        => 'datetime',
+      'settings'    => ['datetime_type' => 'datetime'],
+    ],
+    'field_end_datetime' => [
+      'entity_type' => 'node',
+      'type'        => 'datetime',
+      'settings'    => ['datetime_type' => 'datetime'],
+    ],
+  ];
 
-  FieldStorageConfig::create([
-    'field_name'  => 'field_provider',
-    'entity_type' => 'node',
-    'type'        => 'entity_reference',
-    'settings'    => ['target_type' => 'user'],
-  ])->save();
+  foreach ($field_storages as $field_name => $definition) {
+    if (!$storage_field_storage->load("node.$field_name")) {
+      FieldStorageConfig::create([
+        'field_name' => $field_name,
+      ] + $definition)->save();
+    }
+  }
 
-  FieldStorageConfig::create([
-    'field_name'  => 'field_start_datetime',
-    'entity_type' => 'node',
-    'type'        => 'datetime',
-    'settings'    => ['datetime_type' => 'datetime'],
-  ])->save();
-
-  FieldStorageConfig::create([
-    'field_name'  => 'field_end_datetime',
-    'entity_type' => 'node',
-    'type'        => 'datetime',
-    'settings'    => ['datetime_type' => 'datetime'],
-  ])->save();
-
-  // Clear field definition cache so FieldConfig::preSave() can find the storages.
+  // Clear field definition cache so FieldConfig creation can see the storages.
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 
-  // Pass 2: field configs (depend on storages being in the DB).
-  FieldConfig::create([
-    'field_name'  => 'field_appointment_date',
-    'entity_type' => 'node',
-    'bundle'      => 'appointment',
-    'label'       => 'Appointment Date',
-    'required'    => TRUE,
-  ])->save();
-
-  FieldConfig::create([
-    'field_name'  => 'field_duration_minutes',
-    'entity_type' => 'node',
-    'bundle'      => 'appointment',
-    'label'       => 'Duration (Minutes)',
-    'required'    => TRUE,
-  ])->save();
-
-  FieldConfig::create([
-    'field_name'  => 'field_service_type',
-    'entity_type' => 'node',
-    'bundle'      => 'appointment',
-    'label'       => 'Service Type',
-    'required'    => TRUE,
-  ])->save();
-
-  FieldConfig::create([
-    'field_name'  => 'field_provider',
-    'entity_type' => 'node',
-    'bundle'      => 'appointment',
-    'label'       => 'Provider',
-    'required'    => TRUE,
-    'settings'    => [
-      'handler'          => 'default:user',
-      'handler_settings' => [
-        'filter' => ['type' => '_role', 'role' => ['provider' => 'provider']],
+  // --- Field configs (idempotent) ---
+  $field_configs = [
+    // Appointment bundle
+    'node.appointment.field_appointment_date' => [
+      'field_name'  => 'field_appointment_date',
+      'entity_type' => 'node',
+      'bundle'      => 'appointment',
+      'label'       => 'Appointment Date',
+      'required'    => TRUE,
+    ],
+    'node.appointment.field_duration_minutes' => [
+      'field_name'  => 'field_duration_minutes',
+      'entity_type' => 'node',
+      'bundle'      => 'appointment',
+      'label'       => 'Duration (Minutes)',
+      'required'    => TRUE,
+    ],
+    'node.appointment.field_service_type' => [
+      'field_name'  => 'field_service_type',
+      'entity_type' => 'node',
+      'bundle'      => 'appointment',
+      'label'       => 'Service Type',
+      'required'    => TRUE,
+    ],
+    'node.appointment.field_provider' => [
+      'field_name'  => 'field_provider',
+      'entity_type' => 'node',
+      'bundle'      => 'appointment',
+      'label'       => 'Provider',
+      'required'    => TRUE,
+      'settings'    => [
+        'handler'          => 'default:user',
+        'handler_settings' => [
+          'filter' => ['type' => '_role', 'role' => ['provider' => 'provider']],
+        ],
       ],
     ],
-  ])->save();
-
-  FieldConfig::create([
-    'field_name'  => 'field_provider',
-    'entity_type' => 'node',
-    'bundle'      => 'provider_availability',
-    'label'       => 'Provider',
-    'required'    => TRUE,
-    'settings'    => [
-      'handler'          => 'default:user',
-      'handler_settings' => [
-        'filter' => ['type' => '_role', 'role' => ['provider' => 'provider']],
+    // Provider availability bundle
+    'node.provider_availability.field_provider' => [
+      'field_name'  => 'field_provider',
+      'entity_type' => 'node',
+      'bundle'      => 'provider_availability',
+      'label'       => 'Provider',
+      'required'    => TRUE,
+      'settings'    => [
+        'handler'          => 'default:user',
+        'handler_settings' => [
+          'filter' => ['type' => '_role', 'role' => ['provider' => 'provider']],
+        ],
       ],
     ],
-  ])->save();
+    'node.provider_availability.field_start_datetime' => [
+      'field_name'  => 'field_start_datetime',
+      'entity_type' => 'node',
+      'bundle'      => 'provider_availability',
+      'label'       => 'Start',
+      'required'    => TRUE,
+    ],
+    'node.provider_availability.field_end_datetime' => [
+      'field_name'  => 'field_end_datetime',
+      'entity_type' => 'node',
+      'bundle'      => 'provider_availability',
+      'label'       => 'End',
+      'required'    => TRUE,
+    ],
+  ];
 
-  FieldConfig::create([
-    'field_name'  => 'field_start_datetime',
-    'entity_type' => 'node',
-    'bundle'      => 'provider_availability',
-    'label'       => 'Start',
-    'required'    => TRUE,
-  ])->save();
+  foreach ($field_configs as $field_id => $definition) {
+    if (!$storage_field_config->load($field_id)) {
+      FieldConfig::create($definition)->save();
+    }
+  }
 
-  FieldConfig::create([
-    'field_name'  => 'field_end_datetime',
-    'entity_type' => 'node',
-    'bundle'      => 'provider_availability',
-    'label'       => 'End',
-    'required'    => TRUE,
-  ])->save();
-
+  // Navigation and basic site settings (these are intentionally destructive on menu).
   try {
     _riverside_pt_build_navigation();
   }
