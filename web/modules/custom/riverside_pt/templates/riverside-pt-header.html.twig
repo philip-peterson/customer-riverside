@@ -1,7 +1,7 @@
 <header class="rpt-header relative md:fixed md:top-0 md:left-0 md:right-0 md:z-50 p-5 bg-white shadow-sm" role="banner">
   <div class="flex flex-wrap items-center md:h-full max-w-[1200px] mx-auto px-6 gap-y-0 gap-x-8 md:gap-8">
 
-    <a class="text-lg font-bold text-[#1e3a5f] no-underline whitespace-nowrap shrink-0 hover:text-[#1e3a8a]"
+    <a class="text-lg font-bold text-[#306f8e] no-underline whitespace-nowrap shrink-0 hover:text-[#285a6e]"
        href="{{ home_url }}">{{ site_name }}</a>
 
     <nav class="flex-1 min-w-0" id="rpt-main-nav" aria-label="Main navigation">
@@ -21,12 +21,19 @@
         {% endfor %}
         {% if has_cta %}
           <li class="ml-auto px-6">
-            {% for item in menu_items %}
-              {% if item.is_cta %}
-                <a class="inline-block px-5 py-2 rounded-none  bg-[#306f8e] text-white text-sm font-medium no-underline rounded border border-[#1e3a5f] whitespace-nowrap transition-colors hover:bg-[#152a45] hover:border-[#152a45] hover:text-white"
-                   href="{{ item.url }}">{{ item.title }}</a>
-              {% endif %}
-            {% endfor %}
+            <div class="flex items-center gap-4">
+              {% for item in menu_items %}
+                {% if item.is_cta %}
+                  {% if item.title == 'Contact' %}
+                    <a class="inline-block px-5 py-2 rounded-none bg-white text-[#306f8e] text-sm font-medium no-underline rounded border-2 border-[#306f8e] whitespace-nowrap transition-colors hover:bg-[#e8f2f6] hover:text-[#285a6e]"
+                       href="{{ item.url }}">{{ item.title }}</a>
+                  {% else %}
+                    <a class="inline-block px-5 py-2 rounded-none bg-[#306f8e] text-white text-sm font-medium no-underline rounded border border-[#1e3a5f] whitespace-nowrap transition-colors hover:bg-[#1f5a6e] hover:border-[#1f5a6e] hover:text-white"
+                       href="{{ item.url }}">{{ item.title }}</a>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
           </li>
         {% endif %}
       </ul>
