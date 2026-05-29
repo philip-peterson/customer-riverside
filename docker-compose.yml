@@ -10,7 +10,7 @@ services:
       DB_NAME: drupal
       DB_USER: drupal
       DB_PASS: drupal
-      SITE_NAME: "Riverside Therapeutics"
+      SITE_NAME: "Riverside Physical Therapy"
       ADMIN_PASS: "${ADMIN_PASS:?ADMIN_PASS is required}"
       HASH_SALT: "${HASH_SALT:?HASH_SALT is required}"
       DEBUG: "${DEBUG:-true}"

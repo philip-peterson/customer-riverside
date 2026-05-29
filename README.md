@@ -1,4 +1,4 @@
-# Riverside Patient Tracker
+# Riverside Physical Therapy
 
 A Drupal-based appointment scheduling site for booking sessions between patients and practitioners.
 
