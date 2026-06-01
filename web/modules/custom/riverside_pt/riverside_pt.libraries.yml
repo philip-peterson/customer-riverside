@@ -6,6 +6,8 @@ app:
     js/nav.js: {}
     js/components/rpt-toggle.js: { attributes: { type: module } }
     js/components/rpt-carousel.js: { attributes: { type: module } }
+    js/components/rpt-testimonials.js: { attributes: { type: module } }
+    js/components/rpt-faq.js: { attributes: { type: module } }
 schedule:
   css:
     theme:

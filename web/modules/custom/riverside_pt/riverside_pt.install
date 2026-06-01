@@ -191,7 +191,7 @@ function _riverside_pt_rebuild(): void {
   }
 
   \Drupal::configFactory()->getEditable('system.site')
-    ->set('name', 'Riverside Physical Therapy')
+    ->set('name', 'Riverside Therapeutics')
     ->set('page.front', '/home')
     ->save();
 }

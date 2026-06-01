@@ -2,7 +2,7 @@ riverside_pt.home:
   path: '/home'
   defaults:
     _controller: '\Drupal\riverside_pt\Controller\HomeController::page'
-    _title: 'Riverside Physical Therapy'
+    _title: 'Welcome'
   requirements:
     _permission: 'access content'
 
