@@ -35,7 +35,6 @@ else
     --site-name="$SITE_NAME" \
     --account-name=admin \
     --account-pass="$ADMIN_PASS" \
-    --base-url="${BASE_URL:-http://localhost:8080}" \
     -y || { echo "[entrypoint] FATAL: site:install failed."; exit 1; }
   echo "[entrypoint] Drupal installed."
 fi
