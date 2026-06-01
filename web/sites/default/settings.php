@@ -37,10 +37,10 @@ if (getenv('DEBUG')) {
 
 if ($base = getenv('BASE_URL')) {
   $base_url = $base;
-}
-
-if ($trusted = getenv('TRUSTED_HOST')) {
-  $settings['trusted_host_patterns'] = ['^' . preg_quote($trusted, '/') . '$'];
+  $parsed   = parse_url($base);
+  $host     = $parsed['host'] ?? 'localhost';
+  $port     = isset($parsed['port']) ? ':' . $parsed['port'] : '';
+  $settings['trusted_host_patterns'] = ['^' . preg_quote($host . $port, '/') . '$'];
 } else {
-  $settings['trusted_host_patterns'] = ['^localhost$', '^127\.0\.0\.1$', '^0\.0\.0\.0$'];
+  $settings['trusted_host_patterns'] = ['^localhost$', '^localhost:8080$', '^127\.0\.0\.1$'];
 }

@@ -10,32 +10,34 @@ class PaletteController extends ControllerBase {
     $colors = $this->parseColors();
 
     if (!$colors) {
-      return ['#markup' => '<p>Could not parse tailwind.config.js</p>'];
+      return ['#markup' => \Drupal\Core\Render\Markup::create('<p>Could not parse tailwind.config.js</p>')];
     }
 
-    $html = '<div style="font-family:monospace;font-size:13px;padding:32px;background:#f5f5f5;max-width:480px">';
+    $html = '<div style="font-family:monospace;font-size:13px;padding:32px;background:#f5f5f5">';
 
     foreach ($colors as $group => $shades) {
-      $html .= '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#666;margin:20px 0 8px">'
+      $html .= '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#666;margin:28px 0 12px">'
         . htmlspecialchars($group) . '</div>';
 
+      $html .= '<div style="display:flex;flex-wrap:wrap;gap:12px">';
       foreach ($shades as $shade => $hex) {
         $label = $shade === 'DEFAULT' ? $group : "$group-$shade";
-        $lum = $this->luminance($hex);
-        $textColor = $lum > 140 ? '#333' : '#fff';
-        $border = $lum > 200 ? 'border:1px solid #ccc;' : '';
+        $border = $this->luminance($hex) > 200 ? 'border:1px solid #ddd;' : '';
 
-        $html .= '<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">'
-          . "<div style=\"width:80px;height:40px;background:{$hex};{$border}\"></div>"
-          . "<span style=\"background:{$hex};color:{$textColor};padding:2px 8px\">"
-          . htmlspecialchars("$label — $hex")
-          . '</span></div>';
+        $html .= '<div style="width:100px">'
+          . "<div style=\"width:100px;height:64px;background:{$hex};border-radius:6px 6px 0 0;{$border}\"></div>"
+          . '<div style="background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:6px 8px">'
+          . '<div style="font-weight:600;color:#333">' . htmlspecialchars($label) . '</div>'
+          . '<div style="color:#888;font-size:11px">' . htmlspecialchars($hex) . '</div>'
+          . '</div>'
+          . '</div>';
       }
+      $html .= '</div>';
     }
 
     $html .= '</div>';
 
-    return ['#markup' => $html];
+    return ['#markup' => \Drupal\Core\Render\Markup::create($html)];
   }
 
   private function parseColors(): array {

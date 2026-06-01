@@ -5,6 +5,10 @@ use Drupal\Core\Link;
 use Drupal\Core\Routing\RouteMatchInterface;
 
 function riverside_pt_page_attachments(array &$attachments): void {
+  $route = \Drupal::routeMatch()->getRouteName() ?? '';
+  if (!str_starts_with($route, 'riverside_pt.')) {
+    return;
+  }
   $attachments['#attached']['library'][] = 'riverside_pt/app';
 }
 
@@ -25,9 +29,13 @@ function riverside_pt_theme(): array {
 }
 
 function riverside_pt_page_top(array &$page_top): void {
+  $route = \Drupal::routeMatch()->getRouteName() ?? '';
+  if (!str_starts_with($route, 'riverside_pt.')) {
+    return;
+  }
   $page_top['rpt_header'] = [
     '#theme' => 'riverside_pt_header',
-    '#cache' => ['contexts' => ['url.path']],
+    '#cache' => ['contexts' => ['url.path', 'route']],
   ];
 }
 
