@@ -3,6 +3,8 @@
     const el = document.getElementById('riverside-calendar');
     if (!el) return;
 
+    requestAnimationFrame(function () {
+
     const calendar = new FullCalendar.Calendar(el, {
       initialView: 'dayGridMonth',
       headerToolbar: { left: 'prev', center: 'title', right: 'next' },
@@ -101,5 +103,7 @@
     });
 
     calendar.render();
+
+    }); // end requestAnimationFrame
   });
 })(drupalSettings);
