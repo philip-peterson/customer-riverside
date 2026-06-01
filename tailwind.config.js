@@ -12,6 +12,7 @@ module.exports = {
         'sm': '768px',   // iPad portrait + when hero layout activates
         'md': '1024px',  // Desktop start (header fixed, mission row, etc.)
         'lg': '1280px',  // Large desktop
+        '2xl': '1780px', // Ultra-wide
       },
       fontFamily: {
         hedvig: ['Hedvig Letters Sans', 'sans-serif'],

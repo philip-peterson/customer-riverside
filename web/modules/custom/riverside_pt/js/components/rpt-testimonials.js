@@ -45,9 +45,9 @@ function Testimonials() {
       <div class="py-16" style=${{ paddingLeft: leftEdge }}>
         <div class="mb-10 pr-6">
           <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mb-4">Testimonials</p>
-          <div class="flex items-end justify-between gap-6">
+          <div class="">
             <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-serif font-normal text-gray-900 leading-tight max-w-[520px]">
-              Don&rsquo;t take our word for it.<br />Hear it from our patients!
+              Don${String.fromCharCode(8217)}t take our word for it.<br />Hear it from our patients!
             </h2>
             <div class="flex gap-3 pb-1 shrink-0">
               <button
@@ -55,13 +55,13 @@ function Testimonials() {
                 disabled=${index === 0}
                 aria-label="Previous testimonials"
                 class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30"
-              >&#8592;</button>
+              >${String.fromCharCode(8592)}</button>
               <button
                 onClick=${next}
                 disabled=${index === TESTIMONIALS.length - 1}
                 aria-label="Next testimonials"
                 class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30"
-              >&#8594;</button>
+              >${String.fromCharCode(8594)}</button>
             </div>
           </div>
         </div>

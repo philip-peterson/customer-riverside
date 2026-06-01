@@ -1,27 +1,27 @@
 <div class="bg-[linear-gradient(180deg,#83A1A1_0%,#86AAB6_100%)] pt-px">
   <section class="
     relative md:mt-[78px] min-h-[480px]
-    
+    2xl:flex
     /* This number, 78px is supposed to match the header height (only when header is fixed) */
   ">
 
-    {# Box 1: Image — full-bleed on mobile, offset on sm+ #}
-    <div class="absolute inset-0 flex sm:pt-8 sm:pb-8">
-      <div class="hidden sm:block sm:basis-[8%] sm:grow-[2]"></div>
+    {# Box 1: Image — full-bleed on mobile, offset on sm+ ; 2xl: left 62%, no padding, no offset #}
+    <div class="absolute inset-0 flex sm:pt-8 sm:pb-8 2xl:static 2xl:inset-auto 2xl:w-[62%] 2xl:flex-none 2xl:p-0">
+      <div class="hidden sm:block sm:basis-[8%] sm:grow-[2] 2xl:hidden"></div>
       <img
         src="/modules/custom/riverside_pt/images/hero.jpg"
         alt="A man helps a woman in a wheelchair"
-        class="basis-full sm:basis-[58%] sm:grow min-w-0 h-full object-cover object-[center_0%]" />
-      <div class="hidden sm:block sm:basis-[34%] sm:grow-[2]"></div>
+        class="basis-full sm:basis-[58%] sm:grow 2xl:basis-full 2xl:flex-none min-w-0 h-full object-cover object-[center_0%]" />
+      <div class="hidden sm:block sm:basis-[34%] sm:grow-[2] 2xl:hidden"></div>
     </div>
 
     {# Gradient overlay on mobile so text stays readable over the image #}
     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent sm:hidden"></div>
 
-    {# Box 2: Text — spacer 50% | text 40% | spacer 10% #}
-    <div class="relative flex min-h-[480px] pt-0 pb-4">
-      <div class="hidden sm:block sm:basis-[50%] sm:grow-[2]"></div>
-      <div class="basis-full sm:basis-[40%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 sm:pb-0 gap-[1vw]">
+    {# Box 2: Text — spacer 50% | text 40% | spacer 10% ; 2xl: solid teal panel, text padded to align with nav CTA #}
+    <div class="relative flex min-h-[480px] pt-0 pb-4 2xl:flex-1 2xl:bg-[#86AAB6] 2xl:min-h-0 2xl:pb-0">
+      <div class="hidden sm:block sm:basis-[50%] sm:grow-[2] 2xl:hidden"></div>
+      <div class="basis-full sm:basis-[40%] sm:grow flex flex-col justify-end sm:justify-center px-6 sm:px-0 sm:pb-0 gap-[1vw] 2xl:basis-full 2xl:grow-0 2xl:pl-16 2xl:pr-12 2xl:justify-center">
         <h1
           class="mt-0 mb-[1vw] text-[clamp(1.5rem,3.5vw,3.25rem)] font-serif font-normal text-white leading-none [text-shadow:-56.21px_2.55px_10.22px_#0000001A]"
         >
@@ -39,7 +39,7 @@
           >View Our Services</a>
         </div>
       </div>
-      <div class="hidden sm:block sm:basis-[10%] sm:grow-[2]"></div>
+      <div class="hidden sm:block sm:basis-[10%] sm:grow-[2] 2xl:hidden"></div>
     </div>
 
   </section>
@@ -116,18 +116,17 @@
 </section>
 
 <section class="py-24 px-6 bg-white">
-  <div class="max-w-[420px] mx-auto">
+  <div class="max-w-[560px] mx-auto">
     <h2 class="text-[clamp(2.5rem,5vw,4rem)] font-serif font-light text-gray-800 mb-10 text-center">Book An Appointment</h2>
-    <fieldset class="border border-gray-300 rounded-lg px-4 pb-4 pt-0 mx-auto">
-      <legend class="text-sm text-gray-400 px-2">Appointment Type</legend>
-      <select class="w-full text-gray-700 text-base bg-transparent outline-none py-2 cursor-pointer">
-        <option value="">— Select A Service —</option>
-        <option value="diagnostic">Diagnostic Assessment</option>
-        <option value="sports">Sports Rehabilitation</option>
-        <option value="surgical">Pre/Post-Surgical Rehab</option>
-        <option value="neuro">Neurological Therapy</option>
-      </select>
-    </fieldset>
+    <div id="riverside-calendar"></div>
+    <div id="riverside-booking-backdrop" hidden></div>
+    <div id="riverside-booking-panel" hidden>
+      <div class="riverside-booking-header">
+        <span id="riverside-booking-date"></span>
+        <button id="riverside-booking-close" type="button">&#x2715;</button>
+      </div>
+      <ul id="riverside-booking-slots"></ul>
+    </div>
   </div>
 </section>
 
