@@ -1,5 +1,5 @@
 import { h, render } from "https://esm.sh/preact@10";
-import { useState, useRef } from "https://esm.sh/preact@10/hooks";
+import { useState, useEffect, useRef } from "https://esm.sh/preact@10/hooks";
 import { html } from "https://esm.sh/htm@3/preact";
 
 const TESTIMONIALS = [
@@ -53,6 +53,27 @@ function Testimonials() {
     var maxL = measureMax();
     setLeft(function (l) { return Math.max(-maxL, l - STEP); });
   };
+
+  var leftRef = useRef(left);
+  leftRef.current = left;
+
+  useEffect(function () {
+    var timer;
+    function onResize() {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var max = measureMax();
+        if (-leftRef.current > max) {
+          setLeft(-max);
+        }
+      }, 150);
+    }
+    window.addEventListener("resize", onResize);
+    return function () {
+      clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
 
   var atStart = left >= 0;
 
