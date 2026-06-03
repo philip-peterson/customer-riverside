@@ -1,5 +1,5 @@
 import { h, render } from "https://esm.sh/preact@10";
-import { useState, useEffect, useRef } from "https://esm.sh/preact@10/hooks";
+import { useState, useEffect, useReducer, useRef } from "https://esm.sh/preact@10/hooks";
 import { html } from "https://esm.sh/htm@3/preact";
 
 const TESTIMONIALS = [
@@ -39,6 +39,7 @@ function Testimonials() {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
   const [left, setLeft] = useState(0);
+  const [, forceUpdate] = useReducer(function (n) { return n + 1; }, 0);
 
   function measureMax() {
     if (!containerRef.current) return 0;
@@ -63,9 +64,8 @@ function Testimonials() {
       clearTimeout(timer);
       timer = setTimeout(function () {
         var max = measureMax();
-        if (-leftRef.current > max) {
-          setLeft(-max);
-        }
+        setLeft(function (l) { return Math.min(0, Math.max(-max, l)); });
+        forceUpdate();
       }, 150);
     }
     window.addEventListener("resize", onResize);
@@ -75,19 +75,35 @@ function Testimonials() {
     };
   }, []);
 
-  var touchStartX = useRef(0);
+  var drag = useRef(null); // null when idle, {x, left} when dragging
 
-  var onTouchStart = function (e) {
-    touchStartX.current = e.touches[0].clientX;
+  var onPointerDown = function (e) {
+    drag.current = { x: e.clientX, left: leftRef.current };
+    trackRef.current.style.transition = "none";
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
-  var onTouchEnd = function (e) {
-    var delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (delta < -50) next();
-    else if (delta > 50) prev();
+  var onPointerMove = function (e) {
+    if (!drag.current) return;
+    var delta = e.clientX - drag.current.x;
+    var max = measureMax();
+    setLeft(Math.min(0, Math.max(-max, drag.current.left + delta)));
+  };
+
+  var onPointerUp = function (e) {
+    if (!drag.current) return;
+    drag.current = null;
+    trackRef.current.style.transition = "left 0.5s ease";
+    var max = measureMax();
+    setLeft(function (l) {
+      var clamped = Math.min(0, Math.max(-max, l));
+      var snapped = -Math.round(-clamped / STEP) * STEP;
+      return Math.max(-max, snapped);
+    });
   };
 
   var atStart = left >= 0;
+  var atEnd = !!containerRef.current && left <= -measureMax();
 
   return html`
     <div ref=${wrapRef} style="overflow:hidden">
@@ -108,7 +124,7 @@ function Testimonials() {
               >${String.fromCharCode(8592)}</button>
               <button
                 onClick=${next}
-                disabled=${false}
+                disabled=${atEnd}
                 aria-label="Next testimonials"
                 class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30"
               >${String.fromCharCode(8594)}</button>
@@ -117,9 +133,10 @@ function Testimonials() {
         </div>
         <div
           ref=${trackRef}
-          onTouchStart=${onTouchStart}
-          onTouchEnd=${onTouchEnd}
-          style=${{ position: "relative", top: 0, left: left + "px", transition: "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px" }}
+          onPointerDown=${onPointerDown}
+          onPointerMove=${onPointerMove}
+          onPointerUp=${onPointerUp}
+          style=${{ position: "relative", top: 0, left: left + "px", transition: "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px", width: TOTAL_W + "px" }}
         >
           ${TESTIMONIALS.map(function (t, i) { return html`
             <div key=${i} style=${{ width: CARD_W + "px", flexShrink: 0 }} class="border border-gray-200 rounded-lg p-6 flex flex-col gap-5 bg-white">
