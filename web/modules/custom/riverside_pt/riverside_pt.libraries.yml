@@ -8,6 +8,7 @@ app:
     js/components/rpt-carousel.js: { attributes: { type: module } }
     js/components/rpt-testimonials.js: { attributes: { type: module } }
     js/components/rpt-faq.js: { attributes: { type: module } }
+    js/components/rpt-appt-type.js: { attributes: { type: module } }
 schedule:
   css:
     theme:
