@@ -116,16 +116,13 @@
 </section>
 
 <section class="py-24 px-6 bg-white">
-  <div class="max-w-[560px] mx-auto">
+  <div class="max-w-[900px] mx-auto">
     <h2 class="text-[clamp(2.5rem,5vw,4rem)] font-serif font-light text-gray-800 mb-10 text-center">Book An Appointment</h2>
-    <div id="riverside-calendar"></div>
-    <div id="riverside-booking-backdrop" hidden></div>
-    <div id="riverside-booking-panel" hidden>
-      <div class="riverside-booking-header">
-        <span id="riverside-booking-date"></span>
-        <button id="riverside-booking-close" type="button">&#x2715;</button>
+    <div class="riverside-booking-wrap">
+      <div id="riverside-calendar"></div>
+      <div id="riverside-slots-wrap" hidden>
+        <div id="riverside-booking-slots"></div>
       </div>
-      <ul id="riverside-booking-slots"></ul>
     </div>
   </div>
 </section>

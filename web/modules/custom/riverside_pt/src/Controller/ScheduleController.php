@@ -30,43 +30,26 @@ class ScheduleController extends ControllerBase {
         '#tag' => 'p',
         '#value' => $this->t('View provider availability below. Use the calendar to browse open appointment slots by week.'),
       ],
-      'calendar' => [
+      'booking_wrap' => [
         '#type' => 'html_tag',
         '#tag' => 'div',
-        '#attributes' => ['id' => 'riverside-calendar'],
-      ],
-      'booking_backdrop' => [
-        '#type' => 'html_tag',
-        '#tag' => 'div',
-        '#attributes' => ['id' => 'riverside-booking-backdrop', 'hidden' => TRUE],
-        '#value' => '',
-      ],
-      'booking_panel' => [
-        '#type' => 'html_tag',
-        '#tag' => 'div',
-        '#attributes' => ['id' => 'riverside-booking-panel', 'hidden' => TRUE],
-        'header' => [
+        '#attributes' => ['class' => ['riverside-booking-wrap']],
+        'calendar' => [
           '#type' => 'html_tag',
           '#tag' => 'div',
-          '#attributes' => ['class' => ['riverside-booking-header']],
-          'title' => [
+          '#attributes' => ['id' => 'riverside-calendar'],
+          '#value' => '',
+        ],
+        'slots_wrap' => [
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#attributes' => ['id' => 'riverside-slots-wrap', 'hidden' => TRUE],
+          'slots' => [
             '#type' => 'html_tag',
-            '#tag' => 'span',
-            '#attributes' => ['id' => 'riverside-booking-date'],
+            '#tag' => 'div',
+            '#attributes' => ['id' => 'riverside-booking-slots'],
             '#value' => '',
           ],
-          'close' => [
-            '#type' => 'html_tag',
-            '#tag' => 'button',
-            '#attributes' => ['id' => 'riverside-booking-close', 'type' => 'button'],
-            '#value' => $this->t('✕'),
-          ],
-        ],
-        'slots' => [
-          '#type' => 'html_tag',
-          '#tag' => 'ul',
-          '#attributes' => ['id' => 'riverside-booking-slots'],
-          '#value' => '',
         ],
       ],
       '#attached' => [
@@ -123,17 +106,20 @@ class ScheduleController extends ControllerBase {
     $id = 1;
 
     while ($current < $until) {
-      $i = (int) floor($current->getTimestamp() / 86400);
-      $count = ($i % 5 + $i % 7 + $i % 11) % 6;
-      for ($n = 0; $n < $count; $n++) {
-        $slot = clone $current;
-        $slot->setTime(9 + $n, 0);
-        $events[] = [
-          'id'    => $id++,
-          'title' => 'Available',
-          'start' => $slot->format('Y-m-d\TH:i:s'),
-          'end'   => (clone $slot)->modify('+1 hour')->format('Y-m-d\TH:i:s'),
-        ];
+      $dow = (int) $current->format('N'); // 1=Mon … 7=Sun
+      if ($dow <= 5) {
+        $i = (int) floor($current->getTimestamp() / 86400);
+        $count = ($i % 5 + $i % 7 + $i % 11) % 6;
+        for ($n = 0; $n < $count; $n++) {
+          $slot = clone $current;
+          $slot->setTime(9 + $n, 0);
+          $events[] = [
+            'id'    => $id++,
+            'title' => 'Available',
+            'start' => $slot->format('Y-m-d\TH:i:s'),
+            'end'   => (clone $slot)->modify('+1 hour')->format('Y-m-d\TH:i:s'),
+          ];
+        }
       }
       $current->modify('+1 day');
     }

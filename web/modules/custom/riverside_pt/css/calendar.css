@@ -1,6 +1,53 @@
+.riverside-booking-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 640px) {
+  .riverside-booking-wrap {
+    flex-direction: row;
+    gap: 3rem;
+  }
+}
+
 #riverside-calendar {
   max-width: 480px;
   font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+#riverside-slots-wrap {
+  flex: 1;
+  padding-top: 3rem;
+}
+
+#riverside-booking-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.riverside-slot-btn {
+  padding: 0.6rem 0.5rem;
+  border: 1.5px solid #306f8e;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #306f8e;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.riverside-slot-btn:hover:not(.is-selected) {
+  background: #dde8f0;
+}
+
+.riverside-slot-btn.is-selected {
+  background: #306f8e;
+  color: #fff;
 }
 
 /* ── Strip all borders ── */
@@ -139,65 +186,3 @@
   height: 3.5rem;
 }
 
-/* ── Booking backdrop & panel ── */
-#riverside-booking-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 999;
-}
-
-#riverside-booking-panel {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 340px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 1rem;
-  z-index: 1000;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-.riverside-booking-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-#riverside-booking-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0;
-  color: #6b7280;
-}
-
-#riverside-booking-slots {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-#riverside-booking-slots li {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #306f8e;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: #306f8e;
-}
-
-#riverside-booking-slots li:hover {
-  background: #dde8f0;
-}
