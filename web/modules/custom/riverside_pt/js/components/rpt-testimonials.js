@@ -55,9 +55,6 @@ function Testimonials() {
     setLeft(function (l) { return Math.max(-maxL, l - STEP); });
   };
 
-  var leftRef = useRef(left);
-  leftRef.current = left;
-
   useEffect(function () {
     var timer;
     function onResize() {
@@ -78,7 +75,7 @@ function Testimonials() {
   var drag = useRef(null); // null when idle, {x, left} when dragging
 
   var onPointerDown = function (e) {
-    drag.current = { x: e.clientX, left: leftRef.current };
+    drag.current = { x: e.clientX, left: left };
     trackRef.current.style.transition = "none";
     e.currentTarget.setPointerCapture(e.pointerId);
   };
