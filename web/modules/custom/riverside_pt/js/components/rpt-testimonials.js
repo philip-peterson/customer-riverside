@@ -81,9 +81,7 @@ function Testimonials() {
 
   var onPointerMove = function (e) {
     if (!drag.current) return;
-    var delta = e.clientX - drag.current.x;
-    var max = measureMax();
-    setLeft(Math.min(0, Math.max(-max, drag.current.left + delta)));
+    setLeft(drag.current.left + (e.clientX - drag.current.x));
   };
 
   var onPointerUp = function (e) {
@@ -132,7 +130,8 @@ function Testimonials() {
           onPointerDown=${onPointerDown}
           onPointerMove=${onPointerMove}
           onPointerUp=${onPointerUp}
-          style=${{ position: "relative", top: 0, left: left + "px", transition: "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px", width: TOTAL_W + "px" }}
+          onPointerCancel=${onPointerUp}
+          style=${{ position: "relative", top: 0, left: left + "px", transition: "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px", width: TOTAL_W + "px", touchAction: "pan-y" }}
         >
           ${TESTIMONIALS.map(function (t, i) { return html`
             <div key=${i} style=${{ width: CARD_W + "px", flexShrink: 0 }} class="border border-gray-200 rounded-lg p-6 flex flex-col gap-5 bg-white">
