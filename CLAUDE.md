@@ -42,14 +42,17 @@ docker compose exec app drush rrb
 
 The custom module directory is volume-mounted, so template/CSS/JS edits are live without rebuilding the Docker image. `settings.php` and `development.services.yml` are also volume-mounted.
 
+**Known gotcha:** `drush site:install` rewrites `settings.php`. Because `settings.php` is a bind-mounted file, Docker Desktop on macOS may hold a stale inode reference after the rewrite. If Drupal shows "The provided host name is not valid for this server" after a full rebuild, restart with `DRUPAL_FAST=1` to re-establish the mount without re-running site:install.
+
 ## Stack
 
 - **Drupal 11** (core_version_requirement: ^11)
 - **PHP 8.5-fpm** (in Docker)
 - **PostgreSQL 18** (db: drupal, user: drupal, pass: drupal)
 - **Tailwind CSS v3** — compiled on the host via npm, output to `app.css`
-- **FullCalendar 6** — downloaded at build time, used on the schedule page
+- **FullCalendar 6** — `fullcalendar.min.js` is downloaded by the Dockerfile at build time but the module directory is volume-mounted, so the file must also exist on the host at `js/fullcalendar.min.js` (not gitignored; download once with `curl -fsSL https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js -o web/modules/custom/riverside_pt/js/fullcalendar.min.js`)
 - **Postmark** — email via `drupal/symfony_mailer`
+- **Preact 10 + htm** — loaded via esm.sh CDN imports inside each custom element JS file; no build step required
 
 ## Custom module: `riverside_pt`
 
@@ -60,7 +63,7 @@ All site-specific code lives here: `web/modules/custom/riverside_pt/`
 | File | Purpose |
 |------|---------|
 | `templates/riverside-pt-header.html.twig` | Fixed top nav with hamburger on mobile |
-| `templates/riverside-pt-home.html.twig` | Home page: hero section + services grid |
+| `templates/riverside-pt-home.html.twig` | Home page: hero, services, mission, testimonials, booking, FAQ |
 
 The header is injected globally via `riverside_pt_page_top()` in `.module`, not rendered by a controller.
 
@@ -74,26 +77,70 @@ The header is injected globally via `riverside_pt_page_top()` in `.module`, not 
 | `riverside_pt.booking_store_slot` | `/schedule/book/slot` (POST) | `ScheduleController::storeSlot` |
 | `riverside_pt.schedule_events` | `/schedule/events` | `ScheduleController::events` |
 
+`HomeController::page` attaches the `schedule` library and passes `drupalSettings.riversidePt` (eventsUrl, bookingUrl, storeSlotUrl, holidays) so the booking calendar on the home page works identically to the `/schedule` page.
+
+`ScheduleController::events` generates mock availability Mon–Fri only (skips Sat/Sun via `N > 5` day-of-week check).
+
 ### CSS / JS
 
 | File | Purpose |
 |------|---------|
 | `css/tailwind.css` | Tailwind entry point (`@tailwind base/components/utilities` + custom layers) |
 | `css/app.css` | Compiled Tailwind output — **do not edit directly** |
-| `css/calendar.css` | FullCalendar overrides |
+| `css/calendar.css` | FullCalendar overrides + booking layout + slot button styles |
 | `js/nav.js` | Hamburger toggle — adds/removes `is-open` on `#rpt-main-nav` |
-| `js/calendar.js` | FullCalendar init and slot-selection logic |
+| `js/calendar.js` | FullCalendar init: circle-per-day availability, dateClick → inline slot grid, auto-selects next business day on load |
+| `js/components/rpt-toggle.js` | Generic toggle button web component |
+| `js/components/rpt-carousel.js` | Facility photo carousel (used on `/schedule`) |
+| `js/components/rpt-testimonials.js` | Testimonials carousel — pixel-offset scroll, pointer drag, swipe, resize debounce |
+| `js/components/rpt-faq.js` | Accordion FAQ section |
+| `js/components/rpt-appt-type.js` | Appointment type selector (2×2 card grid, pre-selects Diagnostic Assessment) |
+
+### Custom element pattern
+
+All interactive components are Preact web components following this pattern:
+
+```js
+import { h, render } from "https://esm.sh/preact@10";
+import { useState } from "https://esm.sh/preact@10/hooks";
+import { html } from "https://esm.sh/htm@3/preact";
+
+class RptFoo extends HTMLElement {
+  connectedCallback() { render(html`<${Foo} />`, this); }
+  disconnectedCallback() { render(null, this); }
+}
+customElements.define("rpt-foo", RptFoo);
+```
+
+Use **double-quoted strings only** in these files — the esm.sh CDN fetch and browser JS parsing will fail silently on curly/smart quotes.
 
 ### Libraries
 
 Defined in `riverside_pt.libraries.yml`:
-- `riverside_pt/app` — `app.css` + `nav.js`, attached globally via `riverside_pt_page_attachments()`
-- `riverside_pt/schedule` — `calendar.css` + `fullcalendar.min.js` + `calendar.js`
+- `riverside_pt/app` — `app.css` + `nav.js` + all `js/components/*.js` (as `type: module`), attached globally via `riverside_pt_page_attachments()`
+- `riverside_pt/schedule` — `calendar.css` + `fullcalendar.min.js` + `calendar.js` + `core/drupalSettings`
+
+## Home page sections (in order)
+
+1. **Hero** — two-layer flex layout (image absolute, text relative); 2xl breakpoint adds a side-by-side split with solid teal panel
+2. **Services grid** — 4-column card grid (`xl:grid-cols-4`)
+3. **Mission / stats** — `bg-[#dde8f0]`, `max-w-[1200px]` content container with neck.jpg image
+4. **Testimonials** — `<rpt-testimonials>` carousel; cards overflow right of a `max-w-[1200px]` safe area; pixel-offset `position:relative; left` animation; pointer drag + swipe
+5. **Book An Appointment** — `<rpt-appt-type>` selector above the FullCalendar booking widget; slots display inline beside the calendar
+6. **FAQ** — `<rpt-faq>` accordion; `grid-template-rows: 0fr → 1fr` expand animation
+
+## Booking calendar details
+
+- **Layout**: `.riverside-booking-wrap` is a flex row (stacks on mobile) — calendar left, slot grid right
+- **Auto-selection**: on load, calendar navigates to the next business day; if that day has events, it is pre-selected and the first slot is highlighted
+- **Slot interaction**: clicking a slot highlights it (`.riverside-slot-btn.is-selected`) and immediately POSTs to `storeSlotUrl`, then redirects to `/schedule/book`
+- **No popup**: the old backdrop/panel popup was replaced with the inline side panel
+- **`--cal-row-h`**: CSS custom property on `#riverside-calendar` controls row height; frame uses `calc(var(--cal-row-h) - 0.5rem)`
 
 ## Tailwind notes
 
 - Config scans `templates/**/*.twig` and `src/**/*.php` for class names
-- Breakpoints are standard Tailwind v3: `sm` = 640px, `md` = 768px
+- Breakpoints are standard Tailwind v3: `sm` = 640px, `md` = 768px, `2xl` = 1536px
 - Mobile nav collapse (`max-height` slide) is in `tailwind.css` under `@layer components` because it can't be expressed with utilities
 - Arbitrary Tailwind values use `_` for spaces: `bg-[#4a7a8a]`, `shadow-[-56px_2px_10px_#0000001A]`
 - Non-standard CSS properties (e.g. `text-shadow`) use arbitrary property syntax: `[text-shadow:...]`
@@ -103,9 +150,9 @@ Defined in `riverside_pt.libraries.yml`:
 The hero uses two overlapping flex rows inside a `relative` section:
 
 - **Box 1** (`absolute inset-0 flex`): image layer, out of flow, fills the section
-- **Box 2** (`relative flex min-h-[560px]`): text layer, in flow, sets section height
+- **Box 2** (`relative flex min-h-[480px]`): text layer, in flow, sets section height
 
-Spacer divs with `basis-[x%] grow-[n]` control the offset columns on desktop. On mobile (`< sm`), spacers are `hidden` and content goes full-width with a gradient overlay for legibility.
+Spacer divs with `basis-[x%] grow-[n]` control the offset columns on desktop. On mobile (`< sm`), spacers are `hidden` and content goes full-width with a gradient overlay for legibility. At `2xl`, the section switches to a true side-by-side split with the text on a solid teal background.
 
 ## Development services
 
