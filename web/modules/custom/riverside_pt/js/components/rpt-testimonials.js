@@ -75,6 +75,38 @@ function Testimonials() {
     };
   }, []);
 
+  var touchStartX = useRef(0);
+  var touchStartLeft = useRef(0);
+  var dragging = useRef(false);
+
+  var onTouchStart = function (e) {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartLeft.current = leftRef.current;
+    dragging.current = true;
+  };
+
+  var onTouchMove = function (e) {
+    if (!dragging.current) return;
+    var delta = e.touches[0].clientX - touchStartX.current;
+    var max = measureMax();
+    var raw = touchStartLeft.current + delta;
+    // allow slight overscroll resistance at the edges
+    if (raw > 0) raw = raw / 3;
+    if (raw < -max) raw = -max + (raw + max) / 3;
+    setLeft(raw);
+  };
+
+  var onTouchEnd = function () {
+    if (!dragging.current) return;
+    dragging.current = false;
+    var max = measureMax();
+    setLeft(function (l) {
+      var clamped = Math.min(0, Math.max(-max, l));
+      // snap to nearest card boundary
+      return -Math.round(-clamped / STEP) * STEP;
+    });
+  };
+
   var atStart = left >= 0;
 
   return html`
@@ -105,7 +137,10 @@ function Testimonials() {
         </div>
         <div
           ref=${trackRef}
-          style=${{ position: "relative", top: 0, left: left + "px", transition: "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px" }}
+          onTouchStart=${onTouchStart}
+          onTouchMove=${onTouchMove}
+          onTouchEnd=${onTouchEnd}
+          style=${{ position: "relative", top: 0, left: left + "px", transition: dragging.current ? "none" : "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px" }}
         >
           ${TESTIMONIALS.map(function (t, i) { return html`
             <div key=${i} style=${{ width: CARD_W + "px", flexShrink: 0 }} class="border border-gray-200 rounded-lg p-6 flex flex-col gap-5 bg-white">
