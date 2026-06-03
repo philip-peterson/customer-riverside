@@ -35,7 +35,6 @@ const STEP = CARD_W + GAP;
 const TOTAL_W = TESTIMONIALS.length * CARD_W + (TESTIMONIALS.length - 1) * GAP;
 
 function Testimonials() {
-  const wrapRef = useRef(null);
   const containerRef = useRef(null);
   const trackRef = useRef(null);
   const [left, setLeft] = useState(0);
@@ -103,9 +102,9 @@ function Testimonials() {
   var atEnd = !!containerRef.current && left <= -measureMax();
 
   return html`
-    <div ref=${wrapRef} style="overflow:hidden">
+    <div style="overflow:hidden">
       <div class="px-6 py-16">
-        <div ref=${containerRef} style="max-width:1200px; margin:0 auto; border:2px solid red">
+        <div ref=${containerRef} style="max-width:1200px; margin:0 auto">
         <div class="mb-10">
           <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mb-4">Testimonials</p>
           <div class="flex items-end gap-6">
