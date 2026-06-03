@@ -1,8 +1,145 @@
 #riverside-calendar {
   max-width: 480px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
+/* ── Strip all borders ── */
+#riverside-calendar .fc-scrollgrid,
+#riverside-calendar .fc-scrollgrid-section > *,
+#riverside-calendar td,
+#riverside-calendar th {
+  border: none !important;
+}
+
+/* ── Header toolbar ── */
+#riverside-calendar .fc-header-toolbar {
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+#riverside-calendar .fc-toolbar-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.35rem;
+  font-weight: normal;
+  color: #111;
+}
+
+#riverside-calendar .fc-toolbar-title::after {
+  content: ' \25BC';
+  font-size: 0.6em;
+  vertical-align: middle;
+  color: #374151;
+}
+
+#riverside-calendar .fc-button-group,
+#riverside-calendar .fc-button {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #6b7280 !important;
+  font-size: 1rem;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+}
+
+#riverside-calendar .fc-button:hover {
+  color: #111 !important;
+}
+
+#riverside-calendar .fc-button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Day-of-week header row (S M T W T F S) ── */
+#riverside-calendar .fc-col-header-cell {
+  padding: 0.4rem 0;
+  border: none;
+}
+
+#riverside-calendar .fc-col-header-cell-cushion {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #9ca3af;
+  text-decoration: none;
+  padding: 0;
+}
+
+/* ── Day cells ── */
+#riverside-calendar .fc-daygrid-day-frame {
+  min-height: 3rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#riverside-calendar .fc-daygrid-day-top {
+  flex-direction: row;
+  justify-content: center;
+  padding: 0;
+}
+
+#riverside-calendar .fc-daygrid-day-number {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #9ca3af;
+  text-decoration: none;
+  padding: 0;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+/* Days with available slots — teal outline circle */
+#riverside-calendar .fc-daygrid-day.has-availability .fc-daygrid-day-number {
+  border: 2px solid #306f8e;
+  color: #111;
+  cursor: pointer;
+}
+
+#riverside-calendar .fc-daygrid-day.has-availability .fc-daygrid-day-number:hover {
+  background: #dde8f0;
+}
+
+/* Selected day — filled teal circle */
+#riverside-calendar .fc-daygrid-day.is-selected .fc-daygrid-day-number {
+  background: #306f8e;
+  border: 2px solid #306f8e;
+  color: #fff !important;
+}
+
+/* Days in other months */
+#riverside-calendar .fc-day-other .fc-daygrid-day-number {
+  color: #d1d5db !important;
+  border-color: transparent !important;
+}
+
+/* Today — no special background, let availability/selected styles win */
+#riverside-calendar .fc-day-today {
+  background: none !important;
+}
+
+/* ── Hide all event bars, harnesses, and more-links ── */
+#riverside-calendar .fc-event,
+#riverside-calendar .fc-daygrid-event-harness,
+#riverside-calendar .fc-daygrid-more-link,
+#riverside-calendar .fc-more-popover,
+#riverside-calendar .riverside-holiday-label {
+  display: none !important;
+}
+
+/* ── Daygrid body rows — give them breathing room ── */
+#riverside-calendar .fc-daygrid-body tr {
+  height: 3.5rem;
+}
+
+/* ── Booking backdrop & panel ── */
 #riverside-booking-backdrop {
   position: fixed;
   inset: 0;
@@ -54,35 +191,13 @@
 
 #riverside-booking-slots li {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #3b82f6;
+  border: 1px solid #306f8e;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.85rem;
-  color: #1d4ed8;
+  color: #306f8e;
 }
 
 #riverside-booking-slots li:hover {
-  background: #eff6ff;
-}
-
-#riverside-calendar .fc-more-popover {
-  display: none;
-}
-
-#riverside-calendar .is-holiday .fc-more-link {
-  display: none;
-}
-
-#riverside-calendar .fc-day-other .riverside-holiday-label,
-#riverside-calendar .fc-day-other .fc-more-link {
-  opacity: 0.4;
-}
-
-#riverside-calendar .riverside-holiday-label {
-  overflow-wrap: break-word;
-  line-height: 1;
-  font-size: 0.65rem;
-  color: #b45309;
-  text-align: center;
-  padding: 2px;
+  background: #dde8f0;
 }

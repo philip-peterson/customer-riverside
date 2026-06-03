@@ -1,5 +1,5 @@
 import { h, render } from "https://esm.sh/preact@10";
-import { useState } from "https://esm.sh/preact@10/hooks";
+import { useState, useRef } from "https://esm.sh/preact@10/hooks";
 import { html } from "https://esm.sh/htm@3/preact";
 
 const TESTIMONIALS = [
@@ -9,7 +9,7 @@ const TESTIMONIALS = [
   },
   {
     name: "Leon N.", category: "Neurology Patient", initials: "LN", color: "#a3bfc8",
-    quote: "Every new patient begins with a comprehensive diagnostic assessment. From there, they create a fully personalized treatment plan tailored to your goals -- whether that means returning to sport, recovering from surgery, or restoring function.",
+    quote: "Every new patient begins with a comprehensive diagnostic assessment. From there, they create a fully personalized treatment plan -- whether that means returning to sport, recovering from surgery, or restoring function.",
   },
   {
     name: "Diana K.", category: "Surgery Rehab Patient", initials: "DK", color: "#7aa3af",
@@ -31,42 +31,62 @@ const TESTIMONIALS = [
 
 const CARD_W = 270;
 const GAP = 20;
+const STEP = CARD_W + GAP;
+const TOTAL_W = TESTIMONIALS.length * CARD_W + (TESTIMONIALS.length - 1) * GAP;
 
 function Testimonials() {
-  const [index, setIndex] = useState(0);
+  const wrapRef = useRef(null);
+  const containerRef = useRef(null);
+  const trackRef = useRef(null);
+  const [left, setLeft] = useState(0);
 
-  const prev = () => setIndex(function(i) { return Math.max(0, i - 1); });
-  const next = () => setIndex(function(i) { return Math.min(TESTIMONIALS.length - 1, i + 1); });
+  function measureMax() {
+    if (!containerRef.current) return 0;
+    return Math.max(0, TOTAL_W - containerRef.current.offsetWidth);
+  }
 
-  const leftEdge = "max(1.5rem, calc((100vw - 1248px) / 2 + 1.5rem))";
+  var prev = function () {
+    setLeft(function (l) { return Math.min(0, l + STEP); });
+  };
+
+  var next = function () {
+    var maxL = measureMax();
+    setLeft(function (l) { return Math.max(-maxL, l - STEP); });
+  };
+
+  var atStart = left >= 0;
 
   return html`
-    <div style="overflow:hidden">
-      <div class="py-16" style=${{ paddingLeft: leftEdge }}>
-        <div class="mb-10 pr-6">
+    <div ref=${wrapRef} style="overflow:hidden">
+      <div class="px-6 py-16">
+        <div ref=${containerRef} style="max-width:1200px; margin:0 auto; border:2px solid red">
+        <div class="mb-10">
           <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mb-4">Testimonials</p>
-          <div class="">
+          <div class="flex items-end gap-6">
             <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-serif font-normal text-gray-900 leading-tight max-w-[520px]">
               Don${String.fromCharCode(8217)}t take our word for it.<br />Hear it from our patients!
             </h2>
             <div class="flex gap-3 pb-1 shrink-0">
               <button
                 onClick=${prev}
-                disabled=${index === 0}
+                disabled=${atStart}
                 aria-label="Previous testimonials"
                 class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30"
               >${String.fromCharCode(8592)}</button>
               <button
                 onClick=${next}
-                disabled=${index === TESTIMONIALS.length - 1}
+                disabled=${false}
                 aria-label="Next testimonials"
                 class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30"
               >${String.fromCharCode(8594)}</button>
             </div>
           </div>
         </div>
-        <div style=${{ display: "flex", gap: GAP + "px", transform: "translateX(-" + (index * (CARD_W + GAP)) + "px)", transition: "transform 0.5s ease", paddingBottom: "2px" }}>
-          ${TESTIMONIALS.map((t, i) => html`
+        <div
+          ref=${trackRef}
+          style=${{ position: "relative", top: 0, left: left + "px", transition: "left 0.5s ease", display: "flex", gap: GAP + "px", paddingBottom: "2px" }}
+        >
+          ${TESTIMONIALS.map(function (t, i) { return html`
             <div key=${i} style=${{ width: CARD_W + "px", flexShrink: 0 }} class="border border-gray-200 rounded-lg p-6 flex flex-col gap-5 bg-white">
               <div
                 class="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-base shrink-0"
@@ -78,7 +98,8 @@ function Testimonials() {
                 <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold">${t.category}</p>
               </div>
             </div>
-          `)}
+          `; })}
+        </div>
         </div>
       </div>
     </div>

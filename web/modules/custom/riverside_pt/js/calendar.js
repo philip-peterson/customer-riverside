@@ -1,109 +1,124 @@
 (function (drupalSettings) {
   document.addEventListener('DOMContentLoaded', function () {
-    const el = document.getElementById('riverside-calendar');
+    var el = document.getElementById('riverside-calendar');
     if (!el) return;
 
     requestAnimationFrame(function () {
+      var selectedDate = null;
 
-    const calendar = new FullCalendar.Calendar(el, {
-      initialView: 'dayGridMonth',
-      headerToolbar: { left: 'prev', center: 'title', right: 'next' },
-      validRange: function (now) {
-        return {
-          start: new Date(now.getFullYear(), now.getMonth(), 1),
-          end: new Date(now.getFullYear(), now.getMonth() + 7, 1),
-        };
-      },
-      fixedWeekCount: false,
-      height: 'auto',
-      events: drupalSettings.riversidePt.eventsUrl,
-      eventBackgroundColor: '#3b82f6',
-      eventBorderColor: '#3b82f6',
-      dayMaxEvents: 0,
-      moreLinkContent: function (arg) {
-        return arg.num + ' slot' + (arg.num !== 1 ? 's' : '');
-      },
-      dayCellClassNames: function (arg) {
-        const date = arg.date.toISOString().substring(0, 10);
-        if (drupalSettings.riversidePt.holidays[date]) return ['is-holiday'];
-      },
-      dayCellDidMount: function (arg) {
-        const date = arg.date.toISOString().substring(0, 10);
-        const holiday = drupalSettings.riversidePt.holidays[date];
-        if (!holiday) return;
-        const label = document.createElement('div');
-        label.className = 'riverside-holiday-label';
-        label.textContent = holiday;
-        const dayTop = arg.el.querySelector('.fc-daygrid-day-top');
-        if (dayTop) {
-          dayTop.insertAdjacentElement('afterend', label);
-        } else {
-          arg.el.appendChild(label);
-        }
-      },
-      moreLinkClick: function (arg) {
-        arg.jsEvent.preventDefault();
-        arg.jsEvent.stopPropagation();
-        const date = arg.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        panelDate.textContent = date;
-        panelSlots.innerHTML = '';
-        arg.allSegs.forEach(function (seg) {
-          const li = document.createElement('li');
-          const startLabel = seg.event.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-          const endLabel = seg.event.end.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-          const a = document.createElement('a');
-          a.href = '#';
-          a.textContent = startLabel + ' – ' + endLabel;
-          a.addEventListener('click', function (e) {
-            e.preventDefault();
-            fetch(drupalSettings.riversidePt.storeSlotUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                start: seg.event.startStr,
-                end: seg.event.endStr,
-              }),
-            }).then(function (res) {
-              if (res.ok) {
-                window.location.href = drupalSettings.riversidePt.bookingUrl;
-              } else {
-                a.textContent += ' (no longer available)';
-                a.style.pointerEvents = 'none';
-                a.style.opacity = '0.5';
-              }
-            });
+      var panel    = document.getElementById('riverside-booking-panel');
+      var backdrop = document.getElementById('riverside-booking-backdrop');
+      var panelDate  = document.getElementById('riverside-booking-date');
+      var panelSlots = document.getElementById('riverside-booking-slots');
+
+      function closePanel() {
+        panel.hidden = true;
+        backdrop.hidden = true;
+      }
+
+      function openPanel() {
+        backdrop.hidden = false;
+        panel.hidden = false;
+      }
+
+      var calendar = new FullCalendar.Calendar(el, {
+        initialView: 'dayGridMonth',
+        headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+        titleFormat: { year: 'numeric', month: 'long' },
+        dayHeaderFormat: { weekday: 'narrow' },
+        validRange: function (now) {
+          return {
+            start: new Date(now.getFullYear(), now.getMonth(), 1),
+            end: new Date(now.getFullYear(), now.getMonth() + 7, 1),
+          };
+        },
+        fixedWeekCount: false,
+        height: 'auto',
+        events: drupalSettings.riversidePt.eventsUrl,
+        eventDisplay: 'none',
+        dayMaxEvents: false,
+
+        datesSet: function () {
+          el.querySelectorAll('.fc-daygrid-day.is-selected').forEach(function (d) {
+            d.classList.remove('is-selected');
           });
-          li.appendChild(a);
-          panelSlots.appendChild(li);
-        });
-        openPanel();
-        return false;
-      },
-    });
+          selectedDate = null;
+        },
 
-    const panel = document.getElementById('riverside-booking-panel');
-    const backdrop = document.getElementById('riverside-booking-backdrop');
-    const panelDate = document.getElementById('riverside-booking-date');
-    const panelSlots = document.getElementById('riverside-booking-slots');
+        eventsSet: function (events) {
+          el.querySelectorAll('.fc-daygrid-day.has-availability').forEach(function (d) {
+            d.classList.remove('has-availability');
+          });
+          events.forEach(function (event) {
+            var dateStr = event.startStr.substring(0, 10);
+            var dayEl = el.querySelector('.fc-daygrid-day[data-date="' + dateStr + '"]');
+            if (dayEl) dayEl.classList.add('has-availability');
+          });
+        },
 
-    function closePanel() {
-      panel.hidden = true;
-      backdrop.hidden = true;
-    }
+        dayCellClassNames: function (arg) {
+          var date = arg.date.toISOString().substring(0, 10);
+          if (drupalSettings.riversidePt.holidays[date]) return ['is-holiday'];
+        },
 
-    function openPanel() {
-      backdrop.hidden = false;
-      panel.hidden = false;
-    }
+        dateClick: function (arg) {
+          if (!arg.dayEl.classList.contains('has-availability')) return;
 
-    document.getElementById('riverside-booking-close').addEventListener('click', closePanel);
-    backdrop.addEventListener('click', closePanel);
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closePanel();
-    });
+          var dateStr = arg.dateStr;
+          var dayEvents = calendar.getEvents().filter(function (e) {
+            return e.startStr.startsWith(dateStr);
+          });
+          if (dayEvents.length === 0) return;
 
-    calendar.render();
+          // Update selected highlight.
+          el.querySelectorAll('.fc-daygrid-day.is-selected').forEach(function (d) {
+            d.classList.remove('is-selected');
+          });
+          arg.dayEl.classList.add('is-selected');
+          selectedDate = dateStr;
 
+          // Build slot list.
+          panelDate.textContent = arg.date.toLocaleDateString(undefined, {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          });
+          panelSlots.innerHTML = '';
+          dayEvents.sort(function (a, b) { return a.start - b.start; }).forEach(function (event) {
+            var startLabel = event.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+            var endLabel   = event.end.toLocaleTimeString(undefined,   { hour: 'numeric', minute: '2-digit' });
+            var li = document.createElement('li');
+            var a  = document.createElement('a');
+            a.href = '#';
+            a.textContent = startLabel + ' – ' + endLabel;
+            a.addEventListener('click', function (e) {
+              e.preventDefault();
+              fetch(drupalSettings.riversidePt.storeSlotUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ start: event.startStr, end: event.endStr }),
+              }).then(function (res) {
+                if (res.ok) {
+                  window.location.href = drupalSettings.riversidePt.bookingUrl;
+                } else {
+                  a.textContent += ' (no longer available)';
+                  a.style.pointerEvents = 'none';
+                  a.style.opacity = '0.5';
+                }
+              });
+            });
+            li.appendChild(a);
+            panelSlots.appendChild(li);
+          });
+          openPanel();
+        },
+      });
+
+      document.getElementById('riverside-booking-close').addEventListener('click', closePanel);
+      backdrop.addEventListener('click', closePanel);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closePanel();
+      });
+
+      calendar.render();
     }); // end requestAnimationFrame
   });
 })(drupalSettings);

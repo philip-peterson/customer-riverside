@@ -35,12 +35,19 @@ if (getenv('DEBUG')) {
   $settings['cache']['bins']['page'] = 'cache.backend.null';
 }
 
+// Always allow localhost variants so missing/malformed BASE_URL never locks out local dev.
+$settings['trusted_host_patterns'] = ['^localhost$', '^localhost:\d+$', '^127\.0\.0\.1$', '^127\.0\.0\.1:\d+$'];
+
 if ($base = getenv('BASE_URL')) {
+  // Ensure scheme is present so parse_url extracts host/port correctly.
+  if (!preg_match('#^https?://#', $base)) {
+    $base = 'http://' . $base;
+  }
   $base_url = $base;
   $parsed   = parse_url($base);
-  $host     = $parsed['host'] ?? 'localhost';
+  $host     = $parsed['host'] ?? '';
   $port     = isset($parsed['port']) ? ':' . $parsed['port'] : '';
-  $settings['trusted_host_patterns'] = ['^' . preg_quote($host . $port, '/') . '$'];
-} else {
-  $settings['trusted_host_patterns'] = ['^localhost$', '^localhost:8080$', '^127\.0\.0\.1$'];
+  if ($host && $host !== 'localhost' && !preg_match('/^127\./', $host)) {
+    $settings['trusted_host_patterns'][] = '^' . preg_quote($host . $port, '/') . '$';
+  }
 }
