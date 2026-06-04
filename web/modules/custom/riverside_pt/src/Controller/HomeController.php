@@ -4,13 +4,21 @@ namespace Drupal\riverside_pt\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends ControllerBase {
 
-  public function redirectToAnchor(Request $request): RedirectResponse {
-    return new RedirectResponse($request->attributes->get('destination'), 301);
+  // Renders the home page at a clean URL (e.g. /services, /book-appointment)
+  // and injects the scroll target so the client scrolls to the right section
+  // without a redirect — the URL stays exactly as requested.
+  public function redirectToAnchor(Request $request): array {
+    $build = $this->page();
+    $destination = $request->attributes->get('destination', '');
+    $hash = strstr($destination, '#');
+    if ($hash !== FALSE) {
+      $build['#attached']['drupalSettings']['riversidePt']['scrollTo'] = $hash;
+    }
+    return $build;
   }
 
   public function page(): array {

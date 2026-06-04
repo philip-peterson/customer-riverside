@@ -227,18 +227,6 @@ function _riverside_pt_build_navigation(): void {
     }
   }
 
-  foreach (['FAQ'] as $title) {
-    if ($em->getStorage('node')->loadByProperties(['title' => $title, 'type' => 'page'])) {
-      continue;
-    }
-    $node = Node::create(['type' => 'page', 'title' => $title, 'status' => 1]);
-    $node->save();
-    PathAlias::create([
-      'path'     => '/node/' . $node->id(),
-      'alias'    => '/' . strtolower($title),
-      'langcode' => 'en',
-    ])->save();
-  }
 
   $defs = [
     ['title' => 'Home',                'uri' => 'route:<front>',      'weight' => 0, 'class' => NULL],

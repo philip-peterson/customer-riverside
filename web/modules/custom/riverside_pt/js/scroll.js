@@ -15,13 +15,14 @@ function headerOffset() {
   return header.offsetHeight + (menuOpen ? 0 : FIXED_BUFFER);
 }
 
-// On load: if the URL has a hash (e.g. /home#pt-services from another page),
-// re-scroll with the correct header offset instead of the browser's native jump.
+// On load: scroll to the anchor from either the URL hash or drupalSettings
+// (set by the server when rendering the home page at a clean URL like /services).
 document.addEventListener("DOMContentLoaded", function () {
-  if (!window.location.hash) return;
-  var target = document.querySelector(window.location.hash);
+  var settings = window.drupalSettings && window.drupalSettings.riversidePt;
+  var anchor = window.location.hash || (settings && settings.scrollTo);
+  if (!anchor) return;
+  var target = document.querySelector(anchor);
   if (!target) return;
-  // Defer until layout is stable, then position correctly.
   requestAnimationFrame(function () {
     zenscroll.toY(Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset()), 0);
   });
