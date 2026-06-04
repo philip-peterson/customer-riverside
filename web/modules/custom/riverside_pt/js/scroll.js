@@ -33,5 +33,6 @@ document.addEventListener("click", function (e) {
   var target = document.querySelector(link.dataset.scrollTo);
   if (!target) return;
   e.preventDefault();
+  history.pushState({}, "", link.getAttribute("href"));
   zenscroll.toY(Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset()), 400);
 });
