@@ -69,6 +69,18 @@ class ScheduleController extends ControllerBase {
       $to   = $this->configFactory->get('riverside_pt.settings')->get('notification_email');
       $lang = \Drupal::languageManager()->getDefaultLanguage()->getId();
 
+      // Send confirmation to the user
+      $this->mailManager->mail('riverside_pt', 'booking_confirmation', $email, $lang, [
+        'first_name' => $firstName,
+        'last_name'  => $lastName,
+        'email'      => $email,
+        'phone'      => $phone,
+        'comments'   => $comments,
+        'start'      => $start,
+        'end'        => $end,
+        'service'    => $service,
+      ]);
+
       $sent = $this->mailManager->mail('riverside_pt', 'booking_request', $to, $lang, [
         'first_name' => $firstName,
         'last_name'  => $lastName,
@@ -77,6 +89,7 @@ class ScheduleController extends ControllerBase {
         'comments'   => $comments,
         'start'      => $start,
         'end'        => $end,
+        'service'    => $service,
       ]);
 
       $this->tempStore->delete('booking_slot');

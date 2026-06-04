@@ -4,8 +4,14 @@ namespace Drupal\riverside_pt\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends ControllerBase {
+
+  public function redirectToAnchor(Request $request): RedirectResponse {
+    return new RedirectResponse($request->attributes->get('destination'), 301);
+  }
 
   public function page(): array {
     $holidays = $this->config('riverside_pt.settings')->get('holidays') ?? [];

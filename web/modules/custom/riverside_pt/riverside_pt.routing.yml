@@ -31,3 +31,44 @@ riverside_pt.schedule_events:
   options:
     _auth:
       - cookie
+
+riverside_pt.about:
+  path: '/about'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\PageController::page'
+    _title: 'About'
+  requirements:
+    _permission: 'access content'
+
+riverside_pt.services:
+  path: '/services'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\HomeController::redirectToAnchor'
+    destination: '/home#pt-services'
+  requirements:
+    _access: 'TRUE'
+
+riverside_pt.faq:
+  path: '/faq'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\HomeController::redirectToAnchor'
+    destination: '/home#pt-faq'
+  requirements:
+    _access: 'TRUE'
+
+riverside_pt.service:
+  path: '/services/{slug}'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\PageController::service'
+    _title: 'Service'
+  requirements:
+    _permission: 'access content'
+    slug: 'diagnostic-assessment|sports-rehabilitation|pre-post-surgical-rehab|neurological-therapy'
+
+riverside_pt.contact:
+  path: '/contact'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\PageController::contact'
+    _title: 'Contact'
+  requirements:
+    _permission: 'access content'

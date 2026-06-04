@@ -9,11 +9,6 @@
     background-color: theme('colors.pt-blue.400');
     scroll-behavior: smooth;
   }
-  @media (min-width: theme('screens.sm')) {
-    [id] {
-      scroll-margin-top: 110px; /* fixed header (78px) + breathing room */
-    }
-  }
   /* Neutralise any theme container constraints */
   .page-wrapper {
     max-width: none;

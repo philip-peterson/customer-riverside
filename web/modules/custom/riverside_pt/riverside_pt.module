@@ -25,6 +25,22 @@ function riverside_pt_theme(): array {
     'riverside_pt_home' => [
       'variables' => [],
     ],
+    'riverside_pt_about' => [
+      'variables' => [],
+    ],
+    'riverside_pt_service' => [
+      'variables' => [
+        'slug' => NULL,
+        'title' => NULL,
+        'description' => NULL,
+        'long_description' => NULL,
+        'what_to_expect' => NULL,
+        'benefits' => [],
+      ],
+    ],
+    'riverside_pt_contact' => [
+      'variables' => [],
+    ],
   ];
 }
 
@@ -75,24 +91,64 @@ function riverside_pt_preprocess_riverside_pt_header(array &$variables): void {
 }
 
 function riverside_pt_mail(string $key, array &$message, array $params): void {
-  if ($key !== 'booking_request') {
+  $service_map = [
+    'diagnostic' => 'Diagnostic Assessment',
+    'sports'     => 'Sports Rehabilitation',
+    'surgical'   => 'Surgery Rehabilitation',
+    'neuro'      => 'Neurological Therapy',
+  ];
+  $service_label = $service_map[$params['service'] ?? ''] ?? 'Appointment';
+
+  if ($key === 'booking_request') {
+    $start = new \DateTime($params['start']);
+    $end   = new \DateTime($params['end']);
+
+    $message['subject'] = 'Booking request — ' . $start->format('M j, Y g:i A');
+    $lines = [
+      'Name:  ' . ($params['first_name'] ?? '') . ' ' . ($params['last_name'] ?? ''),
+      'Email: ' . ($params['email'] ?? ''),
+      'Service: ' . $service_label,
+      'Phone: ' . ($params['phone'] ?? ''),
+      'Slot:  ' . $start->format('l, F j, Y') . ', ' . $start->format('g:i A') . '–' . $end->format('g:i A'),
+    ];
+
+    if (!empty($params['comments'])) {
+      $lines[] = 'Comments: ' . $params['comments'];
+    }
+
+    $message['body'][] = implode("\n", $lines);
     return;
   }
 
-  $start = new \DateTime($params['start']);
-  $end   = new \DateTime($params['end']);
+  if ($key === 'booking_confirmation') {
+    $start = new \DateTime($params['start']);
+    $end   = new \DateTime($params['end']);
 
-  $message['subject'] = 'Booking request — ' . $start->format('M j, Y g:i A');
-  $lines = [
-    'Name:  ' . ($params['first_name'] ?? '') . ' ' . ($params['last_name'] ?? ''),
-    'Email: ' . ($params['email'] ?? ''),
-    'Phone: ' . ($params['phone'] ?? ''),
-    'Slot:  ' . $start->format('l, F j, Y') . ', ' . $start->format('g:i A') . '–' . $end->format('g:i A'),
-  ];
+    $first = $params['first_name'] ?? 'Patient';
+    $message['subject'] = 'Your appointment is confirmed — ' . $start->format('M j, Y g:i A');
 
-  if (!empty($params['comments'])) {
-    $lines[] = 'Comments: ' . $params['comments'];
+    $lines = [
+      'Dear ' . $first . ',',
+      '',
+      'Your appointment is *confirmed* for:',
+      $start->format('l, F j, Y') . ', ' . $start->format('g:i A') . '–' . $end->format('g:i A') . ' PST',
+      '',
+      'Service: ' . $service_label,
+    ];
+
+    $full_name = trim(($params['first_name'] ?? '') . ' ' . ($params['last_name'] ?? ''));
+    if ($full_name) {
+      $lines[] = 'Name: ' . $full_name;
+    }
+    if (!empty($params['phone'])) {
+      $lines[] = 'Phone: ' . $params['phone'];
+    }
+
+    $lines[] = '';
+    $lines[] = 'We look forward to seeing you at Riverside Physical Therapy.';
+    $lines[] = 'If you need to cancel or reschedule, please contact us as soon as possible.';
+
+    $message['body'][] = implode("\n", $lines);
+    return;
   }
-
-  $message['body'][] = implode("\n", $lines);
 }
