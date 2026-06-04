@@ -70,11 +70,6 @@ const CX = {
   successNote:    "text-sm text-green-700",
 };
 
-// Module-level vars accessible from FullCalendar callbacks without stale closures.
-var selectedDate = null;
-var selectedDateSlots = [];
-var currentEvents = [];
-
 function localDateStr(d) {
   return d.getFullYear() + "-" +
     String(d.getMonth() + 1).padStart(2, "0") + "-" +
@@ -101,10 +96,13 @@ function formatAppointmentDate(startStr) {
   return date + " at " + slotLabel(startStr);
 }
 
-function Booking({ settings }) {
-  const [service, setService] = useState("diagnostic");
-  const [dateRange, setDateRange] = useState(null); // "startStr/endStr", set by datesSet
-  const [fetchedEvents, setFetchedEvents] = useState(null); // null = not yet fetched
+// ── BookingPanel ──────────────────────────────────────────────────────────
+// Keyed by service in the parent, so it always mounts fresh for each service.
+// service is a prop here — it never changes within an instance's lifetime,
+// which means the fetch effect can depend only on dateRange (no stale-service risk).
+function BookingPanel({ service, settings, onServiceChange }) {
+  const [dateRange, setDateRange] = useState(null);
+  const [fetchedEvents, setFetchedEvents] = useState(null);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [slots, setSlots] = useState([]);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
@@ -119,15 +117,18 @@ function Booking({ settings }) {
   const calRef = useRef(null);
   const initializedRef = useRef(false);
   const autoAdvanceRef = useRef(0);
-  const isFirstServiceRender = useRef(true);
   const fetchAbortRef = useRef(null);
+  // Instance-scoped vars for FullCalendar callbacks (no stale-closure risk via .current).
+  const selectedDateRef = useRef(null);
+  const selectedDateSlotsRef = useRef([]);
+  const currentEventsRef = useRef([]);
   const initDate = useMemo(nextBusinessDay, []);
 
-  function buildEventsUrl(svc) {
-    return settings.eventsUrl + "?service=" + svc;
+  function buildEventsUrl() {
+    return settings.eventsUrl + "?service=" + service;
   }
 
-  // ── Initialize FullCalendar once ───────────────────────────────────────
+  // ── Initialize FullCalendar once ─────────────────────────────────────
   useEffect(function () {
     if (!calEl.current || !window.FullCalendar) return;
 
@@ -149,18 +150,17 @@ function Booking({ settings }) {
       eventDisplay: "none",
       dayMaxEvents: false,
 
-      // Visible range changed. Sets dateRange state → triggers fetch effect.
       datesSet: function (info) {
         calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
           d.classList.remove("is-selected");
         });
         setSelectedSlotId(null);
         setNoSlotsInMonth(false);
-        if (selectedDate) {
-          var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDate + "\"]");
+        if (selectedDateRef.current) {
+          var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDateRef.current + "\"]");
           if (dayEl) {
             dayEl.classList.add("is-selected");
-            setSlots(selectedDateSlots);
+            setSlots(selectedDateSlotsRef.current);
           } else {
             setSlots([]);
           }
@@ -170,8 +170,6 @@ function Booking({ settings }) {
         setDateRange(info.startStr + "/" + info.endStr);
       },
 
-      // Mark which day cells have availability whenever FullCalendar's
-      // event list changes (fires after addEventSource / removeAllEventSources).
       eventsSet: function (events) {
         calEl.current.querySelectorAll(".fc-daygrid-day.has-availability").forEach(function (d) {
           d.classList.remove("has-availability");
@@ -194,11 +192,11 @@ function Booking({ settings }) {
           d.classList.remove("is-selected");
         });
         arg.dayEl.classList.add("is-selected");
-        var daySlots = currentEvents
+        var daySlots = currentEventsRef.current
           .filter(function (e) { return e.start.startsWith(arg.dateStr); })
           .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
-        selectedDate = arg.dateStr;
-        selectedDateSlots = daySlots;
+        selectedDateRef.current = arg.dateStr;
+        selectedDateSlotsRef.current = daySlots;
         setSelectedSlotId(null);
         setSubmitError(null);
         setSuccess(false);
@@ -211,30 +209,32 @@ function Booking({ settings }) {
     return function () { cal.destroy(); };
   }, []);
 
-  // ── Fetch events when service or visible range changes ─────────────────
+  // ── Fetch events when visible range changes ──────────────────────────
+  // service is a prop that never changes within this component instance
+  // (parent keys us by service), so only dateRange needs to be a dep.
   useEffect(function () {
     if (!dateRange) return;
     if (fetchAbortRef.current) fetchAbortRef.current.abort();
     var controller = new AbortController();
     fetchAbortRef.current = controller;
     var parts = dateRange.split("/");
-    var url = buildEventsUrl(service) + "&start=" + parts[0] + "&end=" + parts[1];
+    var url = buildEventsUrl() + "&start=" + parts[0] + "&end=" + parts[1];
     setFetchLoading(true);
     setFetchedEvents(null);
     fetch(url, { signal: controller.signal })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        currentEvents = data;
+        currentEventsRef.current = data;
         setFetchedEvents(data);
         setFetchLoading(false);
       })
       .catch(function (err) {
-        if (err.name === 'AbortError') return;
-        currentEvents = [];
+        if (err.name === "AbortError") return;
+        currentEventsRef.current = [];
         setFetchedEvents([]);
         setFetchLoading(false);
       });
-  }, [service, dateRange]);
+  }, [dateRange]);
 
   // ── Push fetched events into FullCalendar; auto-advance or auto-select ─
   useEffect(function () {
@@ -245,7 +245,7 @@ function Booking({ settings }) {
     cal.removeAllEventSources();
 
     if (fetchedEvents.length > 0) {
-      cal.addEventSource(fetchedEvents); // fires eventsSet → marks availability
+      cal.addEventSource(fetchedEvents);
 
       if (!initializedRef.current) {
         var dates = [...new Set(fetchedEvents.map(function (e) { return e.start.substring(0, 10); }))].sort();
@@ -254,8 +254,8 @@ function Booking({ settings }) {
           var firstSlots = fetchedEvents
             .filter(function (e) { return e.start.startsWith(firstDate); })
             .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
-          selectedDate = firstDate;
-          selectedDateSlots = firstSlots;
+          selectedDateRef.current = firstDate;
+          selectedDateSlotsRef.current = firstSlots;
           var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
           if (targetEl) {
             initializedRef.current = true;
@@ -267,36 +267,11 @@ function Booking({ settings }) {
       }
     } else if (!initializedRef.current && autoAdvanceRef.current < 12) {
       autoAdvanceRef.current++;
-      cal.next(); // fires datesSet → setDateRange → fetch effect re-runs
+      cal.next();
     } else if (initializedRef.current) {
       setNoSlotsInMonth(true);
     }
   }, [fetchedEvents]);
-
-  // ── Reset and navigate when service changes ────────────────────────────
-  useEffect(function () {
-    var cal = calRef.current;
-    if (!cal) return;
-
-    if (isFirstServiceRender.current) {
-      isFirstServiceRender.current = false;
-      return;
-    }
-
-    selectedDate = null;
-    selectedDateSlots = [];
-    currentEvents = [];
-    initializedRef.current = false;
-    autoAdvanceRef.current = 0;
-    setSlots([]);
-    setSelectedSlotId(null);
-    setFormData(EMPTY_FORM);
-    setSubmitError(null);
-    setSuccess(false);
-    setNoSlotsInMonth(false);
-    setFetchedEvents(null);
-    cal.gotoDate(initDate); // fires datesSet → setDateRange → fetch effect
-  }, [service]);
 
   function handleSlotClick(slot) {
     setSelectedSlotId(slot.id);
@@ -363,7 +338,7 @@ function Booking({ settings }) {
           return html`
             <button
               key=${t.id}
-              onClick=${function () { setService(t.id); }}
+              onClick=${function () { onServiceChange(t.id); }}
               style="text-align:left; cursor:pointer;"
               class=${CX.typeBtn + " " + (active ? CX.typeBtnActive : CX.typeBtnInactive)}
             >
@@ -497,6 +472,24 @@ function Booking({ settings }) {
           </div>
         </div>
       ` : null}
+    </div>
+  `;
+}
+
+// ── Booking ───────────────────────────────────────────────────────────────
+// Thin outer shell: owns service selection, keys BookingPanel by service so
+// it mounts fresh on every service change — no reset effects, no race conditions.
+function Booking({ settings }) {
+  const [service, setService] = useState("diagnostic");
+
+  return html`
+    <div style="min-height:460px">
+      <${BookingPanel}
+        key=${service}
+        service=${service}
+        settings=${settings}
+        onServiceChange=${setService}
+      />
     </div>
   `;
 }
