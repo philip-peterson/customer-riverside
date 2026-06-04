@@ -100,7 +100,7 @@ function formatAppointmentDate(startStr) {
 // Keyed by service in the parent, so it always mounts fresh for each service.
 // service is a prop here — it never changes within an instance's lifetime,
 // which means the fetch effect can depend only on dateRange (no stale-service risk).
-function BookingPanel({ service, settings, onServiceChange }) {
+function BookingPanel({ service, settings }) {
   const [dateRange, setDateRange] = useState(null);
   const [fetchedEvents, setFetchedEvents] = useState(null);
   const [fetchLoading, setFetchLoading] = useState(false);
@@ -339,33 +339,6 @@ function BookingPanel({ service, settings, onServiceChange }) {
   return html`
     <div>
       ${!success ? html`
-      <p class=${CX.selectorLabel}>Select Appointment Type</p>
-      <div class=${CX.selectorGrid}>
-        ${TYPES.map(function (t) {
-          var active = service === t.id;
-          return html`
-            <button
-              key=${t.id}
-              onClick=${function () { onServiceChange(t.id); }}
-              style="text-align:left; cursor:pointer;"
-              class=${CX.typeBtn + " " + (active ? CX.typeBtnActive : CX.typeBtnInactive)}
-            >
-              <div class=${CX.typeCircle + " " + (active ? CX.typeCircleActive : CX.typeCircleInactive)}>
-                ${active ? CHECK : null}
-              </div>
-              <div>
-                <p class=${CX.typeLabel + " " + (active ? CX.typeLabelActive : CX.typeLabelInactive)}>
-                  ${t.label}
-                </p>
-                <p class=${CX.typeDuration + " " + (active ? CX.typeDurationActive : CX.typeDurationInactive)}>
-                  ${t.duration}
-                </p>
-              </div>
-            </button>
-          `;
-        })}
-      </div>
-
       <div class="riverside-booking-wrap">
         <div class=${CX.calWrapper}>
           <div ref=${calEl} id="riverside-calendar"></div>
@@ -504,19 +477,43 @@ function BookingPanel({ service, settings, onServiceChange }) {
 }
 
 // ── Booking ───────────────────────────────────────────────────────────────
-// Thin outer shell: owns service selection, keys BookingPanel by service so
-// it mounts fresh on every service change — no reset effects, no race conditions.
+// Owns service selection and the type selector UI. Keys BookingPanel by
+// service so it mounts fresh on every change — no reset effects, no races.
+// Starts with null so no service is pre-selected.
 function Booking({ settings }) {
-  const [service, setService] = useState("diagnostic");
+  const [service, setService] = useState(null);
 
   return html`
     <div style="min-height:460px">
-      <${BookingPanel}
-        key=${service}
-        service=${service}
-        settings=${settings}
-        onServiceChange=${setService}
-      />
+      <p class=${CX.selectorLabel}>Select Appointment Type</p>
+      <div class=${CX.selectorGrid}>
+        ${TYPES.map(function (t) {
+          var active = service === t.id;
+          return html`
+            <button
+              key=${t.id}
+              onClick=${function () { setService(t.id); }}
+              style="text-align:left; cursor:pointer;"
+              class=${CX.typeBtn + " " + (active ? CX.typeBtnActive : CX.typeBtnInactive)}
+            >
+              <div class=${CX.typeCircle + " " + (active ? CX.typeCircleActive : CX.typeCircleInactive)}>
+                ${active ? CHECK : null}
+              </div>
+              <div>
+                <p class=${CX.typeLabel + " " + (active ? CX.typeLabelActive : CX.typeLabelInactive)}>
+                  ${t.label}
+                </p>
+                <p class=${CX.typeDuration + " " + (active ? CX.typeDurationActive : CX.typeDurationInactive)}>
+                  ${t.duration}
+                </p>
+              </div>
+            </button>
+          `;
+        })}
+      </div>
+      ${service ? html`
+        <${BookingPanel} key=${service} service=${service} settings=${settings} />
+      ` : null}
     </div>
   `;
 }
