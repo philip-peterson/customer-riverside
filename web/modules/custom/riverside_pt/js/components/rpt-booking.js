@@ -45,6 +45,7 @@ function Booking({ settings }) {
   const calRef = useRef(null);
   const initializedRef = useRef(false);
   const prevServiceRef = useRef(null);
+  const autoAdvanceRef = useRef(0);
   const initDate = useMemo(nextBusinessDay, []);
 
   function buildEventsUrl(svc) {
@@ -93,12 +94,11 @@ function Booking({ settings }) {
       eventsSet: function (events) {
         markDays(events);
         if (!initializedRef.current) {
-          initializedRef.current = true;
-          var dates = [...new Set(events.map(function (e) { return e.startStr.substring(0, 10); }))]
-            .filter(function (d) { return d >= initDate; })
-            .sort();
+          var dates = [...new Set(events.map(function (e) { return e.startStr.substring(0, 10); }))].sort();
           var firstDate = dates[0];
           if (firstDate) {
+            initializedRef.current = true;
+            autoAdvanceRef.current = 0;
             var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
             if (targetEl) {
               targetEl.classList.add("is-selected");
@@ -108,6 +108,9 @@ function Booking({ settings }) {
                   .sort(function (a, b) { return a.start - b.start; })
               );
             }
+          } else if (autoAdvanceRef.current < 12) {
+            autoAdvanceRef.current++;
+            cal.next();
           }
         }
       },
@@ -144,9 +147,11 @@ function Booking({ settings }) {
 
     var isInitial = prevServiceRef.current === null;
     prevServiceRef.current = service;
+    serviceRef.current = service;
 
     if (!isInitial) {
       initializedRef.current = false;
+      autoAdvanceRef.current = 0;
       setSlots([]);
       setSelectedSlotId(null);
       setFormData(EMPTY_FORM);

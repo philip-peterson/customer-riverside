@@ -101,6 +101,16 @@ class ScheduleController extends ControllerBase {
     $end = $request->query->get('end');
     $service = $request->query->get('service', 'diagnostic');
 
+    $faultZeroAvailability = [
+      'diagnostic' => false,
+      'sports'     => false,
+      'surgical'   => false,
+      'neuro'      => false,
+    ];
+    if ($faultZeroAvailability[$service] ?? false) {
+      return new JsonResponse([]);
+    }
+
     // Each service gets different slot density and start hours so calendars
     // look meaningfully distinct when switching types.
     $serviceConfig = [
