@@ -16,6 +16,11 @@ const CHECK = html`<svg width="14" height="11" viewBox="0 0 14 11" fill="none" x
 function ApptType() {
   const [selected, setSelected] = useState("diagnostic");
 
+  function select(id) {
+    setSelected(id);
+    document.dispatchEvent(new CustomEvent("rpt:appt-type-change", { detail: { type: id } }));
+  }
+
   return html`
     <div>
       <p class="text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-5">Select Appointment Type</p>
@@ -25,7 +30,7 @@ function ApptType() {
           return html`
             <button
               key=${t.id}
-              onClick=${function () { setSelected(t.id); }}
+              onClick=${function () { select(t.id); }}
               style="text-align:left; cursor:pointer;"
               class=${
                 "flex items-center gap-4 p-4 w-full rounded-xl border transition-colors " +

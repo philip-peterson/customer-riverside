@@ -8,7 +8,6 @@ app:
     js/components/rpt-carousel.js: { attributes: { type: module } }
     js/components/rpt-testimonials.js: { attributes: { type: module } }
     js/components/rpt-faq.js: { attributes: { type: module } }
-    js/components/rpt-appt-type.js: { attributes: { type: module } }
 schedule:
   css:
     theme:
@@ -16,5 +15,6 @@ schedule:
   js:
     js/fullcalendar.min.js: { minified: true }
     js/calendar.js: {}
+    js/components/rpt-booking.js: { attributes: { type: module } }
   dependencies:
     - core/drupalSettings

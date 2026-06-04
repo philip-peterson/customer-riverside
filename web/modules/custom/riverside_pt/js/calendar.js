@@ -9,12 +9,23 @@
 
       var selectedDate = null;
       var initialized  = false;
+      var currentService = 'diagnostic';
+
+      function buildEventsUrl(service) {
+        return drupalSettings.riversidePt.eventsUrl + '?service=' + service;
+      }
+
+      function localDateStr(d) {
+        return d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0") + "-" +
+          String(d.getDate()).padStart(2, "0");
+      }
 
       function nextBusinessDay() {
         var d = new Date();
         d.setDate(d.getDate() + 1);
         while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
-        return d.toISOString().substring(0, 10);
+        return localDateStr(d);
       }
 
       var initDate = nextBusinessDay();
@@ -45,7 +56,7 @@
             fetch(drupalSettings.riversidePt.storeSlotUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ start: event.startStr, end: event.endStr }),
+              body: JSON.stringify({ start: event.startStr, end: event.endStr, service: currentService }),
             }).then(function (res) {
               if (res.ok) {
                 window.location.href = drupalSettings.riversidePt.bookingUrl;
@@ -85,7 +96,7 @@
         },
         fixedWeekCount: false,
         height: 'auto',
-        events: drupalSettings.riversidePt.eventsUrl,
+        events: buildEventsUrl(currentService),
         eventDisplay: 'none',
         dayMaxEvents: false,
 

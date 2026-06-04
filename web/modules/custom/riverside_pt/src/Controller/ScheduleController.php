@@ -86,6 +86,10 @@ class ScheduleController extends ControllerBase {
     $this->tempStore->set('booking_slot', [
       'start'       => $start,
       'end'         => $data['end'] ?? '',
+      'service'     => $data['service'] ?? 'diagnostic',
+      'last_name'   => $data['lastName'] ?? '',
+      'phone'       => $data['phone'] ?? '',
+      'comments'    => $data['comments'] ?? '',
       'provider_id' => $data['provider_id'] ?? '',
     ]);
 
@@ -95,11 +99,26 @@ class ScheduleController extends ControllerBase {
   public function events(Request $request): JsonResponse {
     $start = $request->query->get('start');
     $end = $request->query->get('end');
+    $service = $request->query->get('service', 'diagnostic');
+
+    // Each service gets different slot density and start hours so calendars
+    // look meaningfully distinct when switching types.
+    $serviceConfig = [
+      'diagnostic' => ['seeds' => [5, 7, 11], 'startHour' => 9],
+      'sports'     => ['seeds' => [3, 5, 8],  'startHour' => 7],
+      'surgical'   => ['seeds' => [4, 6, 13], 'startHour' => 10],
+      'neuro'      => ['seeds' => [2, 9, 7],  'startHour' => 11],
+    ];
+    $cfg = $serviceConfig[$service] ?? $serviceConfig['diagnostic'];
+    [$s0, $s1, $s2] = $cfg['seeds'];
 
     $current = new \DateTime($start ?? 'now');
-    $today = new \DateTime('today');
-    if ($current < $today) {
-      $current = $today;
+    $earliest = new \DateTime('tomorrow');
+    if ($service === 'surgical') {
+      $earliest = new \DateTime('+46 days');
+    }
+    if ($current < $earliest) {
+      $current = $earliest;
     }
     $until = new \DateTime($end ?? 'now');
     $events = [];
@@ -109,10 +128,10 @@ class ScheduleController extends ControllerBase {
       $dow = (int) $current->format('N'); // 1=Mon … 7=Sun
       if ($dow <= 5) {
         $i = (int) floor($current->getTimestamp() / 86400);
-        $count = ($i % 5 + $i % 7 + $i % 11) % 6;
+        $count = ($i % $s0 + $i % $s1 + $i % $s2) % 6;
         for ($n = 0; $n < $count; $n++) {
           $slot = clone $current;
-          $slot->setTime(9 + $n, 0);
+          $slot->setTime($cfg['startHour'] + $n, 0);
           $events[] = [
             'id'    => $id++,
             'title' => 'Available',
