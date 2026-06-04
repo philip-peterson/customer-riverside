@@ -378,10 +378,11 @@ function BookingPanel({ service, settings }) {
 
           <div class=${CX.formGrid}>
             <div>
-              <label class=${CX.formLabel}>
-                First name <span class=${CX.formRequired}>*</span>
+              <label class=${CX.formLabel} for="first-name">
+                First (or given) name <span class=${CX.formRequired}>*</span>
               </label>
               <input
+                id="first-name"
                 type="text"
                 name="first_name"
                 autocomplete="given-name"
@@ -392,10 +393,11 @@ function BookingPanel({ service, settings }) {
               />
             </div>
             <div>
-              <label class=${CX.formLabel}>
-                Last name <span class=${CX.formRequired}>*</span>
+              <label class=${CX.formLabel} for="last-name">
+                Last (or family) name <span class=${CX.formRequired}>*</span>
               </label>
               <input
+                id="last-name"
                 type="text"
                 name="last_name"
                 autocomplete="family-name"
@@ -406,10 +408,11 @@ function BookingPanel({ service, settings }) {
               />
             </div>
             <div class="sm:col-span-2">
-              <label class=${CX.formLabel}>
+              <label class=${CX.formLabel} for="email">
                 Email address <span class=${CX.formRequired}>*</span>
               </label>
               <input
+                id="email"
                 type="email"
                 name="email"
                 autocomplete="email"
@@ -420,10 +423,11 @@ function BookingPanel({ service, settings }) {
               />
             </div>
             <div class="sm:col-span-2">
-              <label class=${CX.formLabel}>
+              <label class=${CX.formLabel} for="phone">
                 Phone number <span class=${CX.formRequired}>*</span>
               </label>
               <input
+                id="phone"
                 type="tel"
                 name="phone"
                 autocomplete="tel"
@@ -438,8 +442,11 @@ function BookingPanel({ service, settings }) {
           </div>
 
           <div class="mb-6">
-            <label class=${CX.formLabel}>Comments</label>
+            <label class=${CX.formLabel} for="comments">
+              Comments
+            </label>
             <textarea
+              id="comments"
               rows="4"
               name="comments"
               autocomplete="off"
