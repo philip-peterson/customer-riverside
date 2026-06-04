@@ -26,6 +26,18 @@ function riverside_pt_install() {
  * and navigation used by the Docker entrypoint.
  */
 function _riverside_pt_rebuild(): void {
+  // Clear any stale semaphore locks. This prevents duplicate key violations
+  // on the "semaphore" table (e.g. "state:Drupal\Core\Cache\CacheCollector",
+  // "cron") during rebuilds. These occur because rapid entity/config
+  // changes trigger cache collectors and lock acquisitions concurrently.
+  // Safe to run even on initial install (table may not exist yet).
+  try {
+    \Drupal::database()->truncate('semaphore')->execute();
+  }
+  catch (\Exception $e) {
+    // Ignore if table doesn't exist yet.
+  }
+
   $entity_type_manager = \Drupal::entityTypeManager();
   $storage_node_type = $entity_type_manager->getStorage('node_type');
   $storage_role = $entity_type_manager->getStorage('user_role');

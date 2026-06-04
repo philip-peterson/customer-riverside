@@ -37,7 +37,16 @@ else
     --account-pass="$ADMIN_PASS" \
     -y || { echo "[entrypoint] FATAL: site:install failed."; exit 1; }
   echo "[entrypoint] Drupal installed."
+
+  # Clear semaphores immediately after fresh install (prevents early
+  # duplicate key errors during first module enables + rebuild).
+  $DRUSH sql:query "TRUNCATE TABLE semaphore;" 2>/dev/null || true
 fi
+
+# Always clear stale semaphores before module enables + rebuild.
+# This is the most reliable way to avoid the duplicate key errors
+# on "semaphore" (CacheCollector, cron, state locks, etc.).
+$DRUSH sql:query "TRUNCATE TABLE semaphore;" 2>/dev/null || true
 
 echo "[entrypoint] Enabling required modules..."
 $DRUSH en -y views views_ui field_ui text options link datetime && \
@@ -48,6 +57,11 @@ $DRUSH en -y symfony_mailer && \
   echo "[entrypoint] Mailer enabled." || echo "[entrypoint] WARNING: symfony_mailer failed."
 $DRUSH en -y riverside_pt && \
   echo "[entrypoint] riverside_pt enabled." || echo "[entrypoint] WARNING: riverside_pt failed."
+
+# Clear semaphores to avoid duplicate key violations on the semaphore
+# table (e.g. during CacheCollector, cron, state operations) that can
+# occur during rapid config/entity changes in the rebuild.
+$DRUSH sql:query "TRUNCATE TABLE semaphore;" 2>/dev/null || true
 
 echo "[entrypoint] Rebuilding site structure from code (riverside:rebuild)..."
 $DRUSH riverside:rebuild || echo "[entrypoint] WARNING: riverside:rebuild encountered an issue."
@@ -62,6 +76,10 @@ $DRUSH config:set system.site page.front /home -y && \
   echo "[entrypoint] Front page set." || echo "[entrypoint] WARNING: front page set failed."
 
 npm run build --prefix /var/www/html >/dev/null 2>&1 && echo "[entrypoint] Tailwind built." || echo "[entrypoint] WARNING: Tailwind build failed."
+
+# One more semaphore clear before the final cache rebuild (common source
+# of the duplicate key errors seen in logs).
+$DRUSH sql:query "TRUNCATE TABLE semaphore;" 2>/dev/null || true
 
 $DRUSH cache:rebuild >/dev/null 2>&1 && echo "[entrypoint] Cache rebuilt."
 

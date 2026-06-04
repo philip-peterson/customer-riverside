@@ -40,6 +40,19 @@ docker compose exec app drush riverside:rebuild
 docker compose exec app drush rrb
 ```
 
+**Note on semaphore/lock errors in logs:** During rebuilds (especially the full non-`DRUPAL_FAST` path) you may see Postgres errors like:
+
+```
+ERROR: duplicate key value violates unique constraint "semaphore____pkey"
+DETAIL: Key (name)=(state:Drupal\Core\Cache\CacheCollector) already exists.
+```
+
+This is harmless but noisy. The entrypoint and `_riverside_pt_rebuild()` proactively `TRUNCATE TABLE semaphore` at key points to suppress them. If you ever see them after a manual change, run:
+
+```bash
+docker compose exec app drush sql:query "TRUNCATE TABLE semaphore;"
+```
+
 The custom module directory is volume-mounted, so template/CSS/JS edits are live without rebuilding the Docker image. `settings.php` and `development.services.yml` are also volume-mounted.
 
 **Known gotcha:** `drush site:install` rewrites `settings.php`. Because `settings.php` is a bind-mounted file, Docker Desktop on macOS may hold a stale inode reference after the rewrite. If Drupal shows "The provided host name is not valid for this server" after a full rebuild, restart with `DRUPAL_FAST=1` to re-establish the mount without re-running site:install.
