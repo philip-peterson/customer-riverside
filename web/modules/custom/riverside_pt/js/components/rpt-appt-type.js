@@ -18,7 +18,7 @@ function ApptType() {
 
   return html`
     <div>
-      <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mb-5">Select Appointment Type</p>
+      <p class="text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-5">Select Appointment Type</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         ${TYPES.map(function (t) {
           var active = selected === t.id;
@@ -29,12 +29,12 @@ function ApptType() {
               style="text-align:left; cursor:pointer;"
               class=${
                 "flex items-center gap-4 p-4 w-full rounded-xl border transition-colors " +
-                (active ? "bg-[#306f8e] border-[#306f8e]" : "bg-white border-[#b8d4dc] hover:border-[#306f8e]")
+                (active ? "bg-pt-blue-500 border-pt-blue-500" : "bg-white border-pt-blue-200 hover:border-pt-blue-500")
               }
             >
               <div class=${
                 "w-8 h-8 rounded-full shrink-0 flex items-center justify-center border " +
-                (active ? "border-white/60" : "border-[#b8d4dc]")
+                (active ? "border-white/60" : "border-pt-blue-200")
               }>
                 ${active ? CHECK : null}
               </div>
@@ -42,7 +42,7 @@ function ApptType() {
                 <p class=${"font-serif text-[1.0625rem] font-normal leading-snug " + (active ? "text-white" : "text-gray-900")}>
                   ${t.label}
                 </p>
-                <p class=${"text-[0.6875rem] tracking-widest font-semibold mt-0.5 " + (active ? "text-white/70" : "text-[#306f8e]")}>
+                <p class=${"text-[0.6875rem] tracking-widest font-semibold mt-0.5 " + (active ? "text-white/70" : "text-pt-blue-500")}>
                   ${t.duration}
                 </p>
               </div>

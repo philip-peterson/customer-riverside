@@ -11,8 +11,8 @@ function Toggle({ label = 'Toggle' }) {
         setChecked(c => !c)
       }}
       aria-pressed=${checked}
-      class=${`flex items-center gap-2 px-4 py-2 rounded-full border-2 border-[#306f8e] text-sm font-medium cursor-pointer transition-colors ${
-        checked ? 'bg-[#306f8e] text-white' : 'bg-transparent text-[#306f8e]'
+      class=${`flex items-center gap-2 px-4 py-2 rounded-full border-2 border-pt-blue-500 text-sm font-medium cursor-pointer transition-colors ${
+        checked ? 'bg-pt-blue-500 text-white' : 'bg-transparent text-pt-blue-500'
       }`}
     >
       <span class="w-3 h-3 rounded-full bg-current"></span>

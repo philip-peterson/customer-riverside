@@ -4,27 +4,27 @@ import { html } from "https://esm.sh/htm@3/preact";
 
 const TESTIMONIALS = [
   {
-    name: "Sarah M.", category: "Sports Rehab Patient", initials: "SM", color: "#8ab4be",
+    name: "Sarah M.", category: "Sports Rehab Patient", initials: "SM", bgClass: "bg-pt-blue-400",
     quote: "After my ACL tear I was terrified I'd never run again. The team here built a plan that had me back on the field in four months. Every session felt purposeful.",
   },
   {
-    name: "Leon N.", category: "Neurology Patient", initials: "LN", color: "#a3bfc8",
+    name: "Leon N.", category: "Neurology Patient", initials: "LN", bgClass: "bg-pt-blue-300",
     quote: "Every new patient begins with a comprehensive diagnostic assessment. From there, they create a fully personalized treatment plan -- whether that means returning to sport, recovering from surgery, or restoring function.",
   },
   {
-    name: "Diana K.", category: "Surgery Rehab Patient", initials: "DK", color: "#7aa3af",
+    name: "Diana K.", category: "Surgery Rehab Patient", initials: "DK", bgClass: "bg-pt-sage-400",
     quote: "Six weeks post-hip replacement and I was walking without a cane -- weeks ahead of what my surgeon expected. The therapists here are genuinely invested in your outcome, not just checking boxes.",
   },
   {
-    name: "Marcus T.", category: "Sports Rehab Patient", initials: "MT", color: "#6b9dab",
+    name: "Marcus T.", category: "Sports Rehab Patient", initials: "MT", bgClass: "bg-pt-sage-500",
     quote: "I came in with chronic shoulder pain that three other clinics couldn't resolve. Two months in, I'm lifting overhead for the first time in years. The diagnostic process here is legitimately different.",
   },
   {
-    name: "Rachel O.", category: "Surgery Rehab Patient", initials: "RO", color: "#93b8c3",
+    name: "Rachel O.", category: "Surgery Rehab Patient", initials: "RO", bgClass: "bg-pt-blue-300",
     quote: "The booking process is seamless and the staff remembers you. I never felt like just another patient. My recovery from rotator cuff surgery exceeded every milestone.",
   },
   {
-    name: "James P.", category: "Neurology Patient", initials: "JP", color: "#80aab5",
+    name: "James P.", category: "Neurology Patient", initials: "JP", bgClass: "bg-pt-blue-400",
     quote: "After my stroke the neurological therapy program here gave me my independence back. The team combined manual therapy with targeted exercise in a way that made real, measurable progress every single week.",
   },
 ];
@@ -104,7 +104,7 @@ function Testimonials() {
       <div class="px-6 py-16">
         <div ref=${containerRef} style="max-width:1200px; margin:0 auto">
         <div class="mb-10">
-          <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold mb-4">Testimonials</p>
+          <p class="text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-4">Testimonials</p>
           <div class="flex items-end gap-6">
             <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-serif font-normal text-gray-900 leading-tight max-w-[520px]">
               Don${String.fromCharCode(8217)}t take our word for it.<br />Hear it from our patients!
@@ -136,13 +136,12 @@ function Testimonials() {
           ${TESTIMONIALS.map(function (t, i) { return html`
             <div key=${i} style=${{ width: CARD_W + "px", flexShrink: 0 }} class="border border-gray-200 rounded-lg p-6 flex flex-col gap-5 bg-white">
               <div
-                class="w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-base shrink-0"
-                style=${{ backgroundColor: t.color }}
+                class=${"w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold text-base shrink-0 " + t.bgClass}
               >${t.initials}</div>
               <p class="text-[15px] text-gray-700 leading-relaxed flex-1">${t.quote}</p>
               <div>
                 <p class="text-xl font-serif text-gray-900 mb-0.5">${t.name}</p>
-                <p class="text-xs tracking-widest uppercase text-[#306f8e] font-semibold">${t.category}</p>
+                <p class="text-xs tracking-widest uppercase text-pt-blue-500 font-semibold">${t.category}</p>
               </div>
             </div>
           `; })}

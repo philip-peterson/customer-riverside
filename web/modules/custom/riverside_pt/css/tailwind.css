@@ -5,6 +5,9 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    background-color: theme('colors.pt-blue.400');
+  }
   /* Neutralise any theme container constraints */
   .page-wrapper {
     max-width: none;
@@ -27,7 +30,7 @@
       order: 10;
       width: 100%;
       background: #fff;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid theme('colors.gray.200');
       max-height: 0;
       overflow: hidden;
       opacity: 0;
