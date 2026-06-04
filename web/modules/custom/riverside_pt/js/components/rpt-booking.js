@@ -13,7 +13,7 @@ const CHECK = html`<svg width="14" height="11" viewBox="0 0 14 11" fill="none" x
   <polyline points="1,5.5 5,9.5 13,1" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
-const EMPTY_FORM = { firstName: "", lastName: "", phone: "", comments: "" };
+const EMPTY_FORM = { firstName: "", lastName: "", email: "", phone: "", comments: "" };
 
 function formatPhone(raw) {
   let d = String(raw || "").replace(/\D/g, "");
@@ -298,6 +298,7 @@ function BookingPanel({ service, settings, onServiceChange }) {
         service: service,
         firstName: formData.firstName,
         lastName: formData.lastName,
+        email: formData.email,
         phone: formData.phone,
         comments: formData.comments,
       }),
@@ -310,6 +311,7 @@ function BookingPanel({ service, settings, onServiceChange }) {
           service: service,
           firstName: formData.firstName,
           lastName: formData.lastName,
+          email: formData.email,
         });
         setSuccess(true);
         setSelectedSlotId(null);
@@ -371,6 +373,10 @@ function BookingPanel({ service, settings, onServiceChange }) {
         </div>
         ${slots.length > 0 ? html`
           <div id="riverside-slots-wrap">
+            <p class="text-xs text-gray-500 mb-3">Select a time on ${(function () {
+              var p = slots[0].start.split("T")[0].split("-");
+              return parseInt(p[1]) + "/" + parseInt(p[2]) + "/" + p[0];
+            })()}:</p>
             <div id="riverside-booking-slots">
               ${slots.map(function (slot) {
                 return html`
@@ -422,6 +428,20 @@ function BookingPanel({ service, settings, onServiceChange }) {
             </div>
             <div class="sm:col-span-2">
               <label class=${CX.formLabel}>
+                Email address <span class=${CX.formRequired}>*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                autocomplete="email"
+                required
+                value=${formData.email}
+                onInput=${function (e) { handleFormChange("email", e.target.value); }}
+                class=${CX.formInput}
+              />
+            </div>
+            <div class="sm:col-span-2">
+              <label class=${CX.formLabel}>
                 Phone number <span class=${CX.formRequired}>*</span>
               </label>
               <input
@@ -465,6 +485,7 @@ function BookingPanel({ service, settings, onServiceChange }) {
             <p class=${CX.successTitle}>Request received!</p>
             <div class=${CX.successSummary}>
               <p>${confirmedAppointment.firstName} ${confirmedAppointment.lastName}</p>
+              <p>${confirmedAppointment.email}</p>
               <p>${TYPES.find(function (t) { return t.id === confirmedAppointment.service; }).label}</p>
               <p>${formatAppointmentDate(confirmedAppointment.start)}</p>
             </div>
