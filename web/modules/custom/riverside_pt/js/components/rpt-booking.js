@@ -18,7 +18,6 @@ const EMPTY_FORM = { firstName: "", lastName: "", phone: "", comments: "" };
 function formatPhone(raw) {
   let d = String(raw || "").replace(/\D/g, "");
   if (d.length === 11 && d[0] === "1") {
-    // NANP with leading 1: show "1 (xxx) xxx-xxxx"
     const rest = d.slice(1);
     return "1 (" + rest.slice(0, 3) + ") " + rest.slice(3, 6) + "-" + rest.slice(6);
   }
@@ -60,19 +59,21 @@ const CX = {
   submitBtn:    "px-[4em] py-[1em] bg-pt-blue-500 text-white text-sm font-medium transition-colors border-2 border-pt-blue-500 hover:bg-pt-blue-600 hover:border-pt-blue-600 disabled:opacity-50",
 
   // ── Calendar overlay ──────────────────────────────────────────────────
-  calWrapper:       "relative",
-  noSlotsOverlay:   "absolute inset-0 z-10 flex items-center justify-center pt-20 pointer-events-none",
+  calWrapper:     "relative",
+  noSlotsOverlay: "absolute inset-0 z-10 flex items-center justify-center pt-20 pointer-events-none",
 
   // ── Success state ──────────────────────────────────────────────────────
   successSection: "mt-8 pt-8 border-t border-pt-blue-200",
-  successBox:     "p-6 bg-green-50 border border-green-200 text-green-800",
-  successTitle:   "font-medium",
-  successBody:    "text-sm mt-1",
-  successLink:    "mt-3 text-sm text-green-700 underline hover:text-green-800",
+  successBox:     "p-8 bg-green-50 border border-green-200 text-green-800",
+  successTitle:   "text-2xl font-semibold mb-4",
+  successSummary: "flex flex-col gap-1 text-base mb-4",
+  successNote:    "text-sm text-green-700",
 };
 
+// Module-level vars accessible from FullCalendar callbacks without stale closures.
 var selectedDate = null;
 var selectedDateSlots = [];
+var currentEvents = [];
 
 function localDateStr(d) {
   return d.getFullYear() + "-" +
@@ -87,46 +88,47 @@ function nextBusinessDay() {
   return localDateStr(d);
 }
 
-function slotLabel(date) {
-  var h = date.getHours();
+function slotLabel(startStr) {
+  var d = new Date(startStr);
+  var h = d.getHours();
   return (h % 12 || 12) + (h < 12 ? "AM" : "PM") + " PST";
+}
+
+function formatAppointmentDate(startStr) {
+  var parts = startStr.split("T")[0].split("-");
+  var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  var date = d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  return date + " at " + slotLabel(startStr);
 }
 
 function Booking({ settings }) {
   const [service, setService] = useState("diagnostic");
+  const [dateRange, setDateRange] = useState(null); // "startStr/endStr", set by datesSet
+  const [fetchedEvents, setFetchedEvents] = useState(null); // null = not yet fetched
+  const [fetchLoading, setFetchLoading] = useState(false);
   const [slots, setSlots] = useState([]);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [confirmedAppointment, setConfirmedAppointment] = useState(null);
   const [noSlotsInMonth, setNoSlotsInMonth] = useState(false);
 
   const calEl = useRef(null);
   const calRef = useRef(null);
   const initializedRef = useRef(false);
-  const prevServiceRef = useRef(null);
   const autoAdvanceRef = useRef(0);
-  const fetchedRef = useRef(false);
+  const isFirstServiceRender = useRef(true);
   const initDate = useMemo(nextBusinessDay, []);
 
   function buildEventsUrl(svc) {
     return settings.eventsUrl + "?service=" + svc;
   }
 
+  // ── Initialize FullCalendar once ───────────────────────────────────────
   useEffect(function () {
     if (!calEl.current || !window.FullCalendar) return;
-
-    function markDays(events) {
-      calEl.current.querySelectorAll(".fc-daygrid-day.has-availability").forEach(function (d) {
-        d.classList.remove("has-availability");
-      });
-      events.forEach(function (event) {
-        var dateStr = event.startStr.substring(0, 10);
-        var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + dateStr + "\"]");
-        if (dayEl) dayEl.classList.add("has-availability");
-      });
-    }
 
     var cal = new FullCalendar.Calendar(calEl.current, {
       initialView: "dayGridMonth",
@@ -146,17 +148,13 @@ function Booking({ settings }) {
       eventDisplay: "none",
       dayMaxEvents: false,
 
-      loading: function (isLoading) {
-        if (!isLoading) fetchedRef.current = true;
-      },
-
-      datesSet: function () {
+      // Visible range changed. Sets dateRange state → triggers fetch effect.
+      datesSet: function (info) {
         calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
           d.classList.remove("is-selected");
         });
         setSelectedSlotId(null);
         setNoSlotsInMonth(false);
-        fetchedRef.current = false;
         if (selectedDate) {
           var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDate + "\"]");
           if (dayEl) {
@@ -168,38 +166,20 @@ function Booking({ settings }) {
         } else {
           setSlots([]);
         }
+        setDateRange(info.startStr + "/" + info.endStr);
       },
 
+      // Mark which day cells have availability whenever FullCalendar's
+      // event list changes (fires after addEventSource / removeAllEventSources).
       eventsSet: function (events) {
-        markDays(events);
-        if (!initializedRef.current && fetchedRef.current) {
-          fetchedRef.current = false;
-          var dates = [...new Set(events.map(function (e) { return e.startStr.substring(0, 10); }))].sort();
-          var firstDate = dates[0];
-          if (firstDate) {
-            initializedRef.current = true;
-            autoAdvanceRef.current = 0;
-            var firstSlots = events
-              .filter(function (e) { return e.startStr.startsWith(firstDate); })
-              .sort(function (a, b) { return a.start - b.start; });
-            selectedDate = firstDate;
-            selectedDateSlots = firstSlots;
-            var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
-            if (targetEl) {
-              targetEl.classList.add("is-selected");
-              setSlots(firstSlots);
-            }
-          } else if (autoAdvanceRef.current < 12) {
-            autoAdvanceRef.current++;
-            cal.next();
-          }
-        }
-        if (initializedRef.current && fetchedRef.current) {
-          var viewStart = cal.view.currentStart;
-          var viewEnd = cal.view.currentEnd;
-          var inView = events.filter(function (e) { return e.start >= viewStart && e.start < viewEnd; });
-          setNoSlotsInMonth(inView.length === 0);
-        }
+        calEl.current.querySelectorAll(".fc-daygrid-day.has-availability").forEach(function (d) {
+          d.classList.remove("has-availability");
+        });
+        events.forEach(function (event) {
+          var dateStr = event.startStr.substring(0, 10);
+          var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + dateStr + "\"]");
+          if (dayEl) dayEl.classList.add("has-availability");
+        });
       },
 
       dayCellClassNames: function (arg) {
@@ -213,9 +193,9 @@ function Booking({ settings }) {
           d.classList.remove("is-selected");
         });
         arg.dayEl.classList.add("is-selected");
-        var daySlots = cal.getEvents()
-          .filter(function (e) { return e.startStr.startsWith(arg.dateStr); })
-          .sort(function (a, b) { return a.start - b.start; });
+        var daySlots = currentEvents
+          .filter(function (e) { return e.start.startsWith(arg.dateStr); })
+          .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
         selectedDate = arg.dateStr;
         selectedDateSlots = daySlots;
         setSelectedSlotId(null);
@@ -230,29 +210,87 @@ function Booking({ settings }) {
     return function () { cal.destroy(); };
   }, []);
 
+  // ── Fetch events when service or visible range changes ─────────────────
+  useEffect(function () {
+    if (!dateRange) return;
+    var parts = dateRange.split("/");
+    var url = buildEventsUrl(service) + "&start=" + parts[0] + "&end=" + parts[1];
+    setFetchLoading(true);
+    setFetchedEvents(null);
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        currentEvents = data;
+        setFetchedEvents(data);
+        setFetchLoading(false);
+      })
+      .catch(function () {
+        currentEvents = [];
+        setFetchedEvents([]);
+        setFetchLoading(false);
+      });
+  }, [service, dateRange]);
+
+  // ── Push fetched events into FullCalendar; auto-advance or auto-select ─
+  useEffect(function () {
+    if (fetchedEvents === null) return;
+    var cal = calRef.current;
+    if (!cal) return;
+
+    cal.removeAllEventSources();
+
+    if (fetchedEvents.length > 0) {
+      cal.addEventSource(fetchedEvents); // fires eventsSet → marks availability
+
+      if (!initializedRef.current) {
+        var dates = [...new Set(fetchedEvents.map(function (e) { return e.start.substring(0, 10); }))].sort();
+        var firstDate = dates[0];
+        if (firstDate) {
+          initializedRef.current = true;
+          autoAdvanceRef.current = 0;
+          var firstSlots = fetchedEvents
+            .filter(function (e) { return e.start.startsWith(firstDate); })
+            .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+          selectedDate = firstDate;
+          selectedDateSlots = firstSlots;
+          var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
+          if (targetEl) {
+            targetEl.classList.add("is-selected");
+            setSlots(firstSlots);
+          }
+        }
+      }
+    } else if (!initializedRef.current && autoAdvanceRef.current < 12) {
+      autoAdvanceRef.current++;
+      cal.next(); // fires datesSet → setDateRange → fetch effect re-runs
+    } else if (initializedRef.current) {
+      setNoSlotsInMonth(true);
+    }
+  }, [fetchedEvents]);
+
+  // ── Reset and navigate when service changes ────────────────────────────
   useEffect(function () {
     var cal = calRef.current;
     if (!cal) return;
 
-    var isInitial = prevServiceRef.current === null;
-    prevServiceRef.current = service;
-    if (!isInitial) {
-      initializedRef.current = false;
-      autoAdvanceRef.current = 0;
-      fetchedRef.current = false;
-      selectedDate = null;
-      selectedDateSlots = [];
-      setSlots([]);
-      setSelectedSlotId(null);
-      setFormData(EMPTY_FORM);
-      setSubmitError(null);
-      setSuccess(false);
-      setNoSlotsInMonth(false);
-      cal.gotoDate(initDate);
+    if (isFirstServiceRender.current) {
+      isFirstServiceRender.current = false;
+      return;
     }
 
-    cal.removeAllEventSources();
-    cal.addEventSource(buildEventsUrl(service));
+    selectedDate = null;
+    selectedDateSlots = [];
+    currentEvents = [];
+    initializedRef.current = false;
+    autoAdvanceRef.current = 0;
+    setSlots([]);
+    setSelectedSlotId(null);
+    setFormData(EMPTY_FORM);
+    setSubmitError(null);
+    setSuccess(false);
+    setNoSlotsInMonth(false);
+    setFetchedEvents(null);
+    cal.gotoDate(initDate); // fires datesSet → setDateRange → fetch effect
   }, [service]);
 
   function handleSlotClick(slot) {
@@ -275,8 +313,8 @@ function Booking({ settings }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        start: slot.startStr,
-        end: slot.endStr,
+        start: slot.start,
+        end: slot.end,
         service: service,
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -287,16 +325,20 @@ function Booking({ settings }) {
       if (res.ok) {
         setSubmitting(false);
         setSubmitError(null);
+        setConfirmedAppointment({
+          start: slot.start,
+          service: service,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        });
         setSuccess(true);
         setSelectedSlotId(null);
         setFormData(EMPTY_FORM);
       } else {
         setSubmitting(false);
-        if (res.status === 422) {
-          setSubmitError("That slot was just booked. Please choose another time.");
-        } else {
-          setSubmitError("Something went wrong. Please try again.");
-        }
+        setSubmitError(res.status === 422
+          ? "That slot was just booked. Please choose another time."
+          : "Something went wrong. Please try again.");
       }
     }).catch(function () {
       setSubmitting(false);
@@ -308,6 +350,7 @@ function Booking({ settings }) {
 
   return html`
     <div>
+      ${!success ? html`
       <p class=${CX.selectorLabel}>Select Appointment Type</p>
       <div class=${CX.selectorGrid}>
         ${TYPES.map(function (t) {
@@ -364,29 +407,7 @@ function Booking({ settings }) {
         ` : null}
       </div>
 
-      ${success ? html`
-        <div class=${CX.successSection}>
-          <div class=${CX.successBox}>
-            <p class=${CX.successTitle}>Request received!</p>
-            <p class=${CX.successBody}>Thank you. We'll contact you shortly to confirm your appointment.</p>
-            <button
-              type="button"
-              onClick=${function () {
-                setSuccess(false);
-                setFormData(EMPTY_FORM);
-                if (calEl.current) {
-                  calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
-                    d.classList.remove("is-selected");
-                  });
-                }
-              }}
-              class=${CX.successLink}
-            >Book another appointment</button>
-          </div>
-        </div>
-      ` : null}
-
-      ${selectedSlot ? html`
+      ${!success && selectedSlot ? html`
         <form onSubmit=${handleSubmit} autocomplete="on" class=${CX.formSection}>
           <p class=${CX.formHeading}>Your Details</p>
 
@@ -455,6 +476,21 @@ function Booking({ settings }) {
             ${submitting ? "Submitting…" : "Request appointment"}
           </button>
         </form>
+      ` : null}
+      ` : null}
+
+      ${success && confirmedAppointment ? html`
+        <div class=${CX.successSection}>
+          <div class=${CX.successBox}>
+            <p class=${CX.successTitle}>Request received!</p>
+            <div class=${CX.successSummary}>
+              <p>${confirmedAppointment.firstName} ${confirmedAppointment.lastName}</p>
+              <p>${TYPES.find(function (t) { return t.id === confirmedAppointment.service; }).label}</p>
+              <p>${formatAppointmentDate(confirmedAppointment.start)}</p>
+            </div>
+            <p class=${CX.successNote}>We'll contact you shortly to confirm your appointment.</p>
+          </div>
+        </div>
       ` : null}
     </div>
   `;

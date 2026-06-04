@@ -13,6 +13,7 @@
 
     nav.querySelectorAll('a').forEach(function (link) {
       link.addEventListener('click', function () {
+        if (link.dataset.scrollTo) return; // page scrolls away — no need to close
         nav.classList.remove('is-open');
         btn.setAttribute('aria-expanded', 'false');
       });

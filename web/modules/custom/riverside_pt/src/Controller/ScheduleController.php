@@ -42,6 +42,7 @@ class ScheduleController extends ControllerBase {
 
     $firstName  = trim($data['firstName'] ?? $data['first_name'] ?? '');
     $lastName   = trim($data['lastName'] ?? $data['last_name'] ?? '');
+    $email      = trim($data['email'] ?? '');
     $phone      = trim($data['phone'] ?? '');
     $comments   = $data['comments'] ?? '';
     $service    = $data['service'] ?? 'diagnostic';
@@ -51,7 +52,7 @@ class ScheduleController extends ControllerBase {
     // Full contact info present (new embedded booking flow on homepage):
     // validate, send the request email immediately, and return success.
     // This replaces the previous /schedule/book form page.
-    if ($firstName && $lastName && $phone) {
+    if ($firstName && $lastName && $email && $phone) {
       // Prevent double-booking against existing appointment nodes (same logic as before).
       $conflict = \Drupal::entityQuery('node')
         ->condition('type', 'appointment')
@@ -71,6 +72,7 @@ class ScheduleController extends ControllerBase {
       $sent = $this->mailManager->mail('riverside_pt', 'booking_request', $to, $lang, [
         'first_name' => $firstName,
         'last_name'  => $lastName,
+        'email'      => $email,
         'phone'      => $phone,
         'comments'   => $comments,
         'start'      => $start,
@@ -91,7 +93,9 @@ class ScheduleController extends ControllerBase {
       'start'       => $start,
       'end'         => $end,
       'service'     => $service,
+      'first_name'  => $firstName,
       'last_name'   => $lastName,
+      'email'       => $email,
       'phone'       => $phone,
       'comments'    => $comments,
       'provider_id' => $providerId,
