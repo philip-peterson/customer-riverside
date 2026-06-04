@@ -24,6 +24,19 @@ if ($postmark_key = getenv('POSTMARK_API_KEY')) {
     'postmark+api://' . $postmark_key . '@default';
 }
 
+// On localhost/DEBUG, use the core 'php_mail' interface (which respects sendmail_path
+// from php.ini, overridden to our fake-sendmail.sh that logs the email to console
+// and always succeeds). This guarantees booking requests never fail with
+// "mail_failed" during development.
+// In non-DEBUG (production), use symfony_mailer + Postmark.
+$is_dev = (bool) getenv('DEBUG');
+if ($is_dev) {
+  $config['system.mail']['interface']['default'] = 'php_mail';
+} elseif ($postmark_key) {
+  $config['mailer_transport.settings']['default_transport'] = 'postmark';
+  $config['system.mail']['interface']['default'] = 'symfony_mailer';
+}
+
 // Disable CSS/JS aggregation — assets served directly from source paths.
 $config['system.performance']['css']['preprocess'] = FALSE;
 $config['system.performance']['js']['preprocess'] = FALSE;

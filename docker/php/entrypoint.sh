@@ -65,6 +65,28 @@ npm run build --prefix /var/www/html >/dev/null 2>&1 && echo "[entrypoint] Tailw
 
 $DRUSH cache:rebuild >/dev/null 2>&1 && echo "[entrypoint] Cache rebuilt."
 
+# Mock sendmail on localhost/dev: prints full email to stderr (visible in docker logs)
+# instead of erroring with "sh: 1: /usr/sbin/sendmail: not found".
+# This catches any php_mail / legacy mail() calls (e.g. some webforms, fallbacks).
+# Real emails should still go via symfony_mailer + Postmark when configured.
+if [ ! -x /usr/local/bin/fake-sendmail.sh ]; then
+  cat > /usr/local/bin/fake-sendmail.sh << 'FAKE_SENDMAIL'
+#!/bin/sh
+echo "=== MOCK SENDMAIL (dev - email logged, not sent) ===" >&2
+echo "Timestamp: $(date -Iseconds)" >&2
+echo "Called as: $0 $*" >&2
+echo "----- EMAIL CONTENT -----" >&2
+cat >&2
+echo "" >&2
+echo "=== END MOCK SENDMAIL ===" >&2
+exit 0
+FAKE_SENDMAIL
+  chmod +x /usr/local/bin/fake-sendmail.sh
+  echo "[entrypoint] Installed fake sendmail for dev logging."
+fi
+# Override sendmail_path for PHP (affects php_mail interface and any direct mail()).
+echo 'sendmail_path = /usr/local/bin/fake-sendmail.sh' > /usr/local/etc/php/conf.d/sendmail.ini 2>/dev/null || true
+
 if [ "${DEBUG:-false}" = "true" ]; then
   NGINX_CSS_CACHE='expires off; add_header Cache-Control "no-store";'
 else

@@ -318,9 +318,15 @@ function BookingPanel({ service, settings, onServiceChange }) {
         setFormData(EMPTY_FORM);
       } else {
         setSubmitting(false);
-        setSubmitError(res.status === 422
-          ? "That slot was just booked. Please choose another time."
-          : "Something went wrong. Please try again.");
+        if (res.status === 422) {
+          setSubmitError("That slot was just booked. Please choose another time.");
+        } else {
+          res.json().then(function (data) {
+            setSubmitError(data.message || "Something went wrong. Please try again.");
+          }).catch(function () {
+            setSubmitError("Something went wrong. Please try again.");
+          });
+        }
       }
     }).catch(function () {
       setSubmitting(false);

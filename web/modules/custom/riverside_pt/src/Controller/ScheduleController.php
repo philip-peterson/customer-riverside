@@ -84,7 +84,16 @@ class ScheduleController extends ControllerBase {
       if ($sent['result']) {
         return new JsonResponse(['ok' => TRUE]);
       }
-      return new JsonResponse(['error' => 'mail_failed'], 500);
+
+      \Drupal::logger('riverside_pt')->error('Booking request email failed to send to @to (user: @email)', [
+        '@to' => $to,
+        '@email' => $email,
+      ]);
+
+      return new JsonResponse([
+        'error' => 'mail_failed',
+        'message' => 'We were unable to send the confirmation email. Please try again or contact us directly to book.',
+      ], 500);
     }
 
     // Legacy/minimal path (no contact details): just stash in tempstore (for any
