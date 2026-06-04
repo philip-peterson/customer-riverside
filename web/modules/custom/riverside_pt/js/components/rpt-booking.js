@@ -15,6 +15,23 @@ const CHECK = html`<svg width="14" height="11" viewBox="0 0 14 11" fill="none" x
 
 const EMPTY_FORM = { lastName: "", phone: "", comments: "" };
 
+function formatPhone(raw) {
+  let d = String(raw || "").replace(/\D/g, "");
+  if (d.length === 11 && d[0] === "1") {
+    // NANP with leading 1: show "1 (xxx) xxx-xxxx"
+    const rest = d.slice(1);
+    return "1 (" + rest.slice(0, 3) + ") " + rest.slice(3, 6) + "-" + rest.slice(6);
+  }
+  d = d.slice(0, 10);
+  if (d.length === 0) return "";
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return "(" + d.slice(0, 3) + ") " + d.slice(3);
+  return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+}
+
+var selectedDate = null;
+var selectedDateSlots = [];
+
 function localDateStr(d) {
   return d.getFullYear() + "-" +
     String(d.getMonth() + 1).padStart(2, "0") + "-" +
@@ -46,6 +63,7 @@ function Booking({ settings }) {
   const initializedRef = useRef(false);
   const prevServiceRef = useRef(null);
   const autoAdvanceRef = useRef(0);
+  const fetchedRef = useRef(false);
   const initDate = useMemo(nextBusinessDay, []);
 
   function buildEventsUrl(svc) {
@@ -79,34 +97,51 @@ function Booking({ settings }) {
         };
       },
       fixedWeekCount: false,
+      showNonCurrentDates: false,
       height: "auto",
       eventDisplay: "none",
       dayMaxEvents: false,
+
+      loading: function (isLoading) {
+        if (!isLoading) fetchedRef.current = true;
+      },
 
       datesSet: function () {
         calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
           d.classList.remove("is-selected");
         });
-        setSlots([]);
         setSelectedSlotId(null);
+        if (selectedDate) {
+          var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDate + "\"]");
+          if (dayEl) {
+            dayEl.classList.add("is-selected");
+            setSlots(selectedDateSlots);
+          } else {
+            setSlots([]);
+          }
+        } else {
+          setSlots([]);
+        }
       },
 
       eventsSet: function (events) {
         markDays(events);
-        if (!initializedRef.current) {
+        if (!initializedRef.current && fetchedRef.current) {
+          fetchedRef.current = false;
           var dates = [...new Set(events.map(function (e) { return e.startStr.substring(0, 10); }))].sort();
           var firstDate = dates[0];
           if (firstDate) {
             initializedRef.current = true;
             autoAdvanceRef.current = 0;
+            var firstSlots = events
+              .filter(function (e) { return e.startStr.startsWith(firstDate); })
+              .sort(function (a, b) { return a.start - b.start; });
+            selectedDate = firstDate;
+            selectedDateSlots = firstSlots;
             var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
             if (targetEl) {
               targetEl.classList.add("is-selected");
-              setSlots(
-                events
-                  .filter(function (e) { return e.startStr.startsWith(firstDate); })
-                  .sort(function (a, b) { return a.start - b.start; })
-              );
+              setSlots(firstSlots);
             }
           } else if (autoAdvanceRef.current < 12) {
             autoAdvanceRef.current++;
@@ -126,13 +161,14 @@ function Booking({ settings }) {
           d.classList.remove("is-selected");
         });
         arg.dayEl.classList.add("is-selected");
+        var daySlots = cal.getEvents()
+          .filter(function (e) { return e.startStr.startsWith(arg.dateStr); })
+          .sort(function (a, b) { return a.start - b.start; });
+        selectedDate = arg.dateStr;
+        selectedDateSlots = daySlots;
         setSelectedSlotId(null);
         setSubmitError(null);
-        setSlots(
-          cal.getEvents()
-            .filter(function (e) { return e.startStr.startsWith(arg.dateStr); })
-            .sort(function (a, b) { return a.start - b.start; })
-        );
+        setSlots(daySlots);
       },
     });
 
@@ -147,11 +183,12 @@ function Booking({ settings }) {
 
     var isInitial = prevServiceRef.current === null;
     prevServiceRef.current = service;
-    serviceRef.current = service;
-
     if (!isInitial) {
       initializedRef.current = false;
       autoAdvanceRef.current = 0;
+      fetchedRef.current = false;
+      selectedDate = null;
+      selectedDateSlots = [];
       setSlots([]);
       setSelectedSlotId(null);
       setFormData(EMPTY_FORM);
@@ -291,8 +328,13 @@ function Booking({ settings }) {
               <input
                 type="tel"
                 required
-                value=${formData.phone}
-                onInput=${function (e) { handleFormChange("phone", e.target.value); }}
+                value=${formatPhone(formData.phone)}
+                onInput=${function (e) {
+                  // Compute from the tentative input value (supports free typing/paste/backspace anywhere).
+                  // We store the formatted result so the email and prefill see it nicely displayed.
+                  const next = formatPhone(e.target.value);
+                  handleFormChange("phone", next);
+                }}
                 class=${inputClass}
               />
             </div>

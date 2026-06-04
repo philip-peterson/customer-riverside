@@ -72,21 +72,25 @@ class BookingForm extends FormBase {
     ];
 
     $form['last_name'] = [
-      '#type'     => 'textfield',
-      '#title'    => $this->t('Last name'),
-      '#required' => TRUE,
+      '#type'          => 'textfield',
+      '#title'         => $this->t('Last name'),
+      '#required'      => TRUE,
+      '#default_value' => $slot['last_name'] ?? '',
     ];
 
     $form['phone'] = [
-      '#type'     => 'tel',
-      '#title'    => $this->t('Phone number'),
-      '#required' => TRUE,
+      '#type'          => 'tel',
+      '#title'         => $this->t('Phone number'),
+      '#required'      => TRUE,
+      '#default_value' => $slot['phone'] ?? '',
+      '#attributes'    => ['class' => ['rpt-phone']],
     ];
 
     $form['comments'] = [
-      '#type'  => 'textarea',
-      '#title' => $this->t('Comments'),
-      '#rows'  => 4,
+      '#type'          => 'textarea',
+      '#title'         => $this->t('Comments'),
+      '#rows'          => 4,
+      '#default_value' => $slot['comments'] ?? '',
     ];
 
     $form['actions'] = ['#type' => 'actions'];

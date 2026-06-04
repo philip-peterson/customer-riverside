@@ -4,6 +4,7 @@ app:
       css/app.css: {}
   js:
     js/nav.js: {}
+    js/phone-format.js: {}
     js/components/rpt-toggle.js: { attributes: { type: module } }
     js/components/rpt-carousel.js: { attributes: { type: module } }
     js/components/rpt-testimonials.js: { attributes: { type: module } }
