@@ -95,6 +95,7 @@
           };
         },
         fixedWeekCount: false,
+        showNonCurrentDates: false,
         height: 'auto',
         events: buildEventsUrl(currentService),
         eventDisplay: 'none',

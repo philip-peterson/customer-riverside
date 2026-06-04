@@ -21,7 +21,6 @@ class HomeController extends ControllerBase {
         'drupalSettings' => [
           'riversidePt' => [
             'eventsUrl'    => Url::fromRoute('riverside_pt.schedule_events')->toString(),
-            'bookingUrl'   => Url::fromRoute('riverside_pt.booking')->toString(),
             'storeSlotUrl' => Url::fromRoute('riverside_pt.booking_store_slot')->toString(),
             'holidays'     => $holidayMap,
           ],

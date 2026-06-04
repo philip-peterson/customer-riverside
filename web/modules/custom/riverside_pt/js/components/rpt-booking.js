@@ -13,7 +13,7 @@ const CHECK = html`<svg width="14" height="11" viewBox="0 0 14 11" fill="none" x
   <polyline points="1,5.5 5,9.5 13,1" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
-const EMPTY_FORM = { lastName: "", phone: "", comments: "" };
+const EMPTY_FORM = { firstName: "", lastName: "", phone: "", comments: "" };
 
 function formatPhone(raw) {
   let d = String(raw || "").replace(/\D/g, "");
@@ -57,6 +57,8 @@ function Booking({ settings }) {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [noSlotsInMonth, setNoSlotsInMonth] = useState(false);
 
   const calEl = useRef(null);
   const calRef = useRef(null);
@@ -111,6 +113,7 @@ function Booking({ settings }) {
           d.classList.remove("is-selected");
         });
         setSelectedSlotId(null);
+        setNoSlotsInMonth(false);
         if (selectedDate) {
           var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDate + "\"]");
           if (dayEl) {
@@ -148,6 +151,12 @@ function Booking({ settings }) {
             cal.next();
           }
         }
+        if (initializedRef.current && fetchedRef.current) {
+          var viewStart = cal.view.currentStart;
+          var viewEnd = cal.view.currentEnd;
+          var inView = events.filter(function (e) { return e.start >= viewStart && e.start < viewEnd; });
+          setNoSlotsInMonth(inView.length === 0);
+        }
       },
 
       dayCellClassNames: function (arg) {
@@ -168,6 +177,7 @@ function Booking({ settings }) {
         selectedDateSlots = daySlots;
         setSelectedSlotId(null);
         setSubmitError(null);
+        setSuccess(false);
         setSlots(daySlots);
       },
     });
@@ -193,6 +203,8 @@ function Booking({ settings }) {
       setSelectedSlotId(null);
       setFormData(EMPTY_FORM);
       setSubmitError(null);
+      setSuccess(false);
+      setNoSlotsInMonth(false);
       cal.gotoDate(initDate);
     }
 
@@ -203,6 +215,7 @@ function Booking({ settings }) {
   function handleSlotClick(slot) {
     setSelectedSlotId(slot.id);
     setSubmitError(null);
+    setSuccess(false);
   }
 
   function handleFormChange(field, value) {
@@ -222,16 +235,25 @@ function Booking({ settings }) {
         start: slot.startStr,
         end: slot.endStr,
         service: service,
+        firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
         comments: formData.comments,
       }),
     }).then(function (res) {
       if (res.ok) {
-        window.location.href = settings.bookingUrl;
+        setSubmitting(false);
+        setSubmitError(null);
+        setSuccess(true);
+        setSelectedSlotId(null);
+        setFormData(EMPTY_FORM);
       } else {
         setSubmitting(false);
-        setSubmitError("Something went wrong. Please try again.");
+        if (res.status === 422) {
+          setSubmitError("That slot was just booked. Please choose another time.");
+        } else {
+          setSubmitError("Something went wrong. Please try again.");
+        }
       }
     }).catch(function () {
       setSubmitting(false);
@@ -280,7 +302,16 @@ function Booking({ settings }) {
       </div>
 
       <div class="riverside-booking-wrap">
-        <div ref=${calEl} id="riverside-calendar"></div>
+        <div style="position:relative">
+          <div ref=${calEl} id="riverside-calendar"></div>
+          ${noSlotsInMonth ? html`
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-top:5rem;pointer-events:none;">
+              <p style="font-size:0.875rem;color:#6b7280;border:1px solid #b8d4dc;background:#fff;padding:0.5rem 1rem;">
+                No availability this month
+              </p>
+            </div>
+          ` : null}
+        </div>
         ${slots.length > 0 ? html`
           <div id="riverside-slots-wrap">
             <div id="riverside-booking-slots">
@@ -299,6 +330,28 @@ function Booking({ settings }) {
         ` : null}
       </div>
 
+      ${success ? html`
+        <div class="mt-8 pt-8 border-t border-pt-blue-200">
+          <div class="p-6 bg-green-50 border border-green-200 text-green-800">
+            <p class="font-medium">Request received!</p>
+            <p class="text-sm mt-1">Thank you. We'll contact you shortly to confirm your appointment.</p>
+            <button
+              type="button"
+              onClick=${function () {
+                setSuccess(false);
+                setFormData(EMPTY_FORM);
+                if (calEl.current) {
+                  calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
+                    d.classList.remove("is-selected");
+                  });
+                }
+              }}
+              class="mt-3 text-sm text-green-700 underline hover:text-green-800"
+            >Book another appointment</button>
+          </div>
+        </div>
+      ` : null}
+
       ${selectedSlot ? html`
         <form
           onSubmit=${handleSubmit}
@@ -311,6 +364,18 @@ function Booking({ settings }) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-5">
             <div>
               <label class=${labelClass}>
+                First name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value=${formData.firstName}
+                onInput=${function (e) { handleFormChange("firstName", e.target.value); }}
+                class=${inputClass}
+              />
+            </div>
+            <div>
+              <label class=${labelClass}>
                 Last name <span class="text-red-500">*</span>
               </label>
               <input
@@ -321,7 +386,7 @@ function Booking({ settings }) {
                 class=${inputClass}
               />
             </div>
-            <div>
+            <div class="sm:col-span-2">
               <label class=${labelClass}>
                 Phone number <span class="text-red-500">*</span>
               </label>

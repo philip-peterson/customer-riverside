@@ -21,7 +21,7 @@ const FAQS = [
   },
   {
     q: "Can I book an appointment online?",
-    a: "Yes. Use the booking tool on our Schedule page to pick a service type, choose an available slot, and confirm your appointment. You'll receive a confirmation email immediately.",
+    a: "Yes. Use the booking tool on this page to pick a service type, choose an available slot, and submit your request. You'll receive a confirmation email immediately.",
   },
   {
     q: "What should I wear or bring to my session?",

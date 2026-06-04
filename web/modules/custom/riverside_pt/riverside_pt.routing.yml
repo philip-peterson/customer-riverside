@@ -14,22 +14,6 @@ riverside_pt.home:
   requirements:
     _permission: 'access content'
 
-riverside_pt.schedule:
-  path: '/schedule'
-  defaults:
-    _controller: '\Drupal\riverside_pt\Controller\ScheduleController::page'
-    _title: 'Schedule'
-  requirements:
-    _permission: 'access content'
-
-riverside_pt.booking:
-  path: '/schedule/book'
-  defaults:
-    _form: '\Drupal\riverside_pt\Form\BookingForm'
-    _title: 'Request Appointment'
-  requirements:
-    _permission: 'access content'
-
 riverside_pt.booking_store_slot:
   path: '/schedule/book/slot'
   defaults:

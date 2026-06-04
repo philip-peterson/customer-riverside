@@ -73,13 +73,6 @@
   color: #111;
 }
 
-#riverside-calendar .fc-toolbar-title::after {
-  content: ' \25BC';
-  font-size: 0.6em;
-  vertical-align: middle;
-  color: #374151;
-}
-
 #riverside-calendar .fc-button-group,
 #riverside-calendar .fc-button {
   background: none !important;
@@ -176,6 +169,11 @@
 
 /* Today — no special background, let availability/selected styles win */
 #riverside-calendar .fc-day-today {
+  background: none !important;
+}
+
+/* Disabled days (outside validRange) — no background tint */
+#riverside-calendar .fc-day-disabled {
   background: none !important;
 }
 

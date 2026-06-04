@@ -5,7 +5,8 @@ namespace Drupal\riverside_pt\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
-use Drupal\Core\Url;
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,66 +14,23 @@ use Symfony\Component\HttpFoundation\Request;
 class ScheduleController extends ControllerBase {
 
   private PrivateTempStore $tempStore;
+  private $configFactory;
 
-  public function __construct(PrivateTempStoreFactory $tempStoreFactory) {
+  public function __construct(
+    PrivateTempStoreFactory $tempStoreFactory,
+    private readonly MailManagerInterface $mailManager,
+    ConfigFactoryInterface $configFactory,
+  ) {
     $this->tempStore = $tempStoreFactory->get('riverside_pt');
+    $this->configFactory = $configFactory;
   }
 
   public static function create(ContainerInterface $container): static {
-    return new static($container->get('tempstore.private'));
-  }
-
-  public function page(): array {
-    return [
-      '#type' => 'container',
-      'intro' => [
-        '#type' => 'html_tag',
-        '#tag' => 'p',
-        '#value' => $this->t('View provider availability below. Use the calendar to browse open appointment slots by week.'),
-      ],
-      'booking_wrap' => [
-        '#type' => 'html_tag',
-        '#tag' => 'div',
-        '#attributes' => ['class' => ['riverside-booking-wrap']],
-        'calendar' => [
-          '#type' => 'html_tag',
-          '#tag' => 'div',
-          '#attributes' => ['id' => 'riverside-calendar'],
-          '#value' => '',
-        ],
-        'slots_wrap' => [
-          '#type' => 'html_tag',
-          '#tag' => 'div',
-          '#attributes' => ['id' => 'riverside-slots-wrap', 'hidden' => TRUE],
-          'slots' => [
-            '#type' => 'html_tag',
-            '#tag' => 'div',
-            '#attributes' => ['id' => 'riverside-booking-slots'],
-            '#value' => '',
-          ],
-        ],
-      ],
-      '#attached' => [
-        'library' => ['riverside_pt/schedule'],
-        'drupalSettings' => [
-          'riversidePt' => [
-            'eventsUrl'    => Url::fromRoute('riverside_pt.schedule_events')->toString(),
-            'bookingUrl'   => Url::fromRoute('riverside_pt.booking')->toString(),
-            'storeSlotUrl' => Url::fromRoute('riverside_pt.booking_store_slot')->toString(),
-            'holidays'     => $this->buildHolidaysMap(),
-          ],
-        ],
-      ],
-    ];
-  }
-
-  private function buildHolidaysMap(): array {
-    $holidays = $this->config('riverside_pt.settings')->get('holidays') ?? [];
-    $map = [];
-    foreach ($holidays as $holiday) {
-      $map[$holiday['date']] = $holiday['name'];
-    }
-    return $map;
+    return new static(
+      $container->get('tempstore.private'),
+      $container->get('plugin.manager.mail'),
+      $container->get('config.factory'),
+    );
   }
 
   public function storeSlot(Request $request): JsonResponse {
@@ -83,14 +41,61 @@ class ScheduleController extends ControllerBase {
       return new JsonResponse(['error' => 'past'], 422);
     }
 
+    $firstName  = trim($data['firstName'] ?? $data['first_name'] ?? '');
+    $lastName   = trim($data['lastName'] ?? $data['last_name'] ?? '');
+    $phone      = trim($data['phone'] ?? '');
+    $comments   = $data['comments'] ?? '';
+    $service    = $data['service'] ?? 'diagnostic';
+    $end        = $data['end'] ?? '';
+    $providerId = $data['provider_id'] ?? '';
+
+    // Full contact info present (new embedded booking flow on homepage):
+    // validate, send the request email immediately, and return success.
+    // This replaces the previous /schedule/book form page.
+    if ($firstName && $lastName && $phone) {
+      // Prevent double-booking against existing appointment nodes (same logic as before).
+      $conflict = \Drupal::entityQuery('node')
+        ->condition('type', 'appointment')
+        ->condition('field_appointment_date', $start)
+        ->condition('field_provider', $providerId ?: 0)
+        ->accessCheck(FALSE)
+        ->count()
+        ->execute();
+
+      if ($conflict > 0) {
+        return new JsonResponse(['error' => 'conflict'], 422);
+      }
+
+      $to   = $this->configFactory->get('riverside_pt.settings')->get('notification_email');
+      $lang = \Drupal::languageManager()->getDefaultLanguage()->getId();
+
+      $sent = $this->mailManager->mail('riverside_pt', 'booking_request', $to, $lang, [
+        'first_name' => $firstName,
+        'last_name'  => $lastName,
+        'phone'      => $phone,
+        'comments'   => $comments,
+        'start'      => $start,
+        'end'        => $end,
+      ]);
+
+      $this->tempStore->delete('booking_slot');
+
+      if ($sent['result']) {
+        return new JsonResponse(['ok' => TRUE]);
+      }
+      return new JsonResponse(['error' => 'mail_failed'], 500);
+    }
+
+    // Legacy/minimal path (no contact details): just stash in tempstore (for any
+    // remaining callers that don't send full info).
     $this->tempStore->set('booking_slot', [
       'start'       => $start,
-      'end'         => $data['end'] ?? '',
-      'service'     => $data['service'] ?? 'diagnostic',
-      'last_name'   => $data['lastName'] ?? '',
-      'phone'       => $data['phone'] ?? '',
-      'comments'    => $data['comments'] ?? '',
-      'provider_id' => $data['provider_id'] ?? '',
+      'end'         => $end,
+      'service'     => $service,
+      'last_name'   => $lastName,
+      'phone'       => $phone,
+      'comments'    => $comments,
+      'provider_id' => $providerId,
     ]);
 
     return new JsonResponse(['ok' => TRUE]);

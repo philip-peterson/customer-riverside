@@ -15,7 +15,6 @@ schedule:
       css/calendar.css: {}
   js:
     js/fullcalendar.min.js: { minified: true }
-    js/calendar.js: {}
     js/components/rpt-booking.js: { attributes: { type: module } }
   dependencies:
     - core/drupalSettings
