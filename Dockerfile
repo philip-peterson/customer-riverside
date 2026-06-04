@@ -78,9 +78,7 @@ COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf.template
 
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/entrypoint.sh /entrypoint.sh
-COPY docker/php/fake-sendmail.sh /usr/local/bin/fake-sendmail.sh
-RUN chmod +x /entrypoint.sh /usr/local/bin/fake-sendmail.sh && \
-    echo 'sendmail_path = /usr/local/bin/fake-sendmail.sh' > /usr/local/etc/php/conf.d/sendmail.ini
+RUN chmod +x /entrypoint.sh
 
 RUN chown -R www-data:www-data web/sites/default/files && \
     chmod -R 755 web/sites/default/files && \

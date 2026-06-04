@@ -166,8 +166,8 @@ Nav items come from Drupal's `main` menu. Items titled `"Book An Appointment"` o
 
 Booking confirmation emails are sent via `riverside_pt_mail()` in `.module` using the `booking_request` key. Transport is Postmark (via `drupal/symfony_mailer`), configured in `config/sync/symfony_mailer.mailer_transport.postmark.yml`. The API key is injected via the `POSTMARK_API_KEY` environment variable.
 
-In `settings.php` (when the key is present) we also force:
-- `mailer_transport.settings.default_transport = postmark`
-- `system.mail.interface.default = symfony_mailer`
+In `settings.php`:
+- If `DEBUG` (dev/localhost): force `system.mail.interface.default = 'php_mail'` (so it uses the mocked sendmail_path below) and never use Postmark.
+- Else if `POSTMARK_API_KEY` present (prod): set `mailer_transport.settings.default_transport = postmark` and `system.mail.interface.default = symfony_mailer`.
 
-On localhost/dev, a fake sendmail binary is provided (via Dockerfile + entrypoint) that prints the full email to stderr (visible via `docker compose logs`) instead of failing with "sh: 1: /usr/sbin/sendmail: not found". This catches any legacy `php_mail` fallbacks. Real transactional mail goes through Postmark when configured.
+On localhost/dev (when `DEBUG` is truthy), a fake sendmail binary is provided (via Dockerfile + entrypoint) **only in DEBUG mode** that prints the full email to stderr (visible via `docker compose logs`) instead of failing with "sh: 1: /usr/sbin/sendmail: not found". This catches any legacy `php_mail` fallbacks. Real transactional mail goes through Postmark when configured (non-DEBUG).
