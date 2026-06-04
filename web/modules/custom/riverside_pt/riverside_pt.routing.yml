@@ -64,6 +64,14 @@ riverside_pt.book_appointment:
   requirements:
     _access: 'TRUE'
 
+riverside_pt.testimonials:
+  path: '/testimonials'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\HomeController::redirectToAnchor'
+    destination: '/home#pt-testimonials'
+  requirements:
+    _access: 'TRUE'
+
 riverside_pt.service:
   path: '/services/{slug}'
   defaults:

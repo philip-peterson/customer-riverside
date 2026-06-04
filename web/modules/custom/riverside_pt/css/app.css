@@ -1289,6 +1289,11 @@ html {
      object-position: center 0%;
 }
 
+.object-center{
+  -o-object-position: center;
+     object-position: center;
+}
+
 .p-0{
   padding: 0px;
 }
