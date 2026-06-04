@@ -56,6 +56,14 @@ riverside_pt.faq:
   requirements:
     _access: 'TRUE'
 
+riverside_pt.book_appointment:
+  path: '/book-appointment'
+  defaults:
+    _controller: '\Drupal\riverside_pt\Controller\HomeController::redirectToAnchor'
+    destination: '/home#book-an-appointment'
+  requirements:
+    _access: 'TRUE'
+
 riverside_pt.service:
   path: '/services/{slug}'
   defaults:
