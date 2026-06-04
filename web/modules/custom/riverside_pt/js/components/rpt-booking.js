@@ -120,6 +120,7 @@ function Booking({ settings }) {
   const initializedRef = useRef(false);
   const autoAdvanceRef = useRef(0);
   const isFirstServiceRender = useRef(true);
+  const fetchAbortRef = useRef(null);
   const initDate = useMemo(nextBusinessDay, []);
 
   function buildEventsUrl(svc) {
@@ -213,18 +214,22 @@ function Booking({ settings }) {
   // ── Fetch events when service or visible range changes ─────────────────
   useEffect(function () {
     if (!dateRange) return;
+    if (fetchAbortRef.current) fetchAbortRef.current.abort();
+    var controller = new AbortController();
+    fetchAbortRef.current = controller;
     var parts = dateRange.split("/");
     var url = buildEventsUrl(service) + "&start=" + parts[0] + "&end=" + parts[1];
     setFetchLoading(true);
     setFetchedEvents(null);
-    fetch(url)
+    fetch(url, { signal: controller.signal })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         currentEvents = data;
         setFetchedEvents(data);
         setFetchLoading(false);
       })
-      .catch(function () {
+      .catch(function (err) {
+        if (err.name === 'AbortError') return;
         currentEvents = [];
         setFetchedEvents([]);
         setFetchLoading(false);
@@ -246,8 +251,6 @@ function Booking({ settings }) {
         var dates = [...new Set(fetchedEvents.map(function (e) { return e.start.substring(0, 10); }))].sort();
         var firstDate = dates[0];
         if (firstDate) {
-          initializedRef.current = true;
-          autoAdvanceRef.current = 0;
           var firstSlots = fetchedEvents
             .filter(function (e) { return e.start.startsWith(firstDate); })
             .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
@@ -255,6 +258,8 @@ function Booking({ settings }) {
           selectedDateSlots = firstSlots;
           var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
           if (targetEl) {
+            initializedRef.current = true;
+            autoAdvanceRef.current = 0;
             targetEl.classList.add("is-selected");
             setSlots(firstSlots);
           }
