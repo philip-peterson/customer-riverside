@@ -29,6 +29,48 @@ function formatPhone(raw) {
   return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
 }
 
+// All Tailwind class strings live here so the JIT scanner sees complete
+// literals in one place rather than spread across template expressions.
+const CX = {
+  // ── Type selector ──────────────────────────────────────────────────────
+  selectorLabel:        "text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-5",
+  selectorGrid:         "grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10",
+  typeBtn:              "flex items-center gap-4 p-4 w-full rounded-xl border transition-colors",
+  typeBtnActive:        "bg-pt-blue-500 border-pt-blue-500",
+  typeBtnInactive:      "bg-white border-pt-blue-200 hover:border-pt-blue-500",
+  typeCircle:           "w-8 h-8 rounded-full shrink-0 flex items-center justify-center border",
+  typeCircleActive:     "border-white/60",
+  typeCircleInactive:   "border-pt-blue-200",
+  typeLabel:            "font-serif text-[1.0625rem] font-normal leading-snug",
+  typeLabelActive:      "text-white",
+  typeLabelInactive:    "text-gray-900",
+  typeDuration:         "text-[0.6875rem] tracking-widest font-semibold mt-0.5",
+  typeDurationActive:   "text-white/70",
+  typeDurationInactive: "text-pt-blue-500",
+
+  // ── Form ───────────────────────────────────────────────────────────────
+  formSection:  "mt-8 pt-8 border-t border-pt-blue-200",
+  formHeading:  "text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-6",
+  formGrid:     "grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-5",
+  formLabel:    "block text-sm font-medium text-gray-700 mb-1",
+  formRequired: "text-red-500",
+  formInput:    "w-full border border-pt-blue-200 bg-white px-3 py-2 text-gray-900 text-sm focus:outline-none focus:border-pt-blue-500 transition-colors",
+  formTextarea: "resize-none w-full border border-pt-blue-200 bg-white px-3 py-2 text-gray-900 text-sm focus:outline-none focus:border-pt-blue-500 transition-colors",
+  formError:    "text-red-500 text-sm mb-4",
+  submitBtn:    "px-[4em] py-[1em] bg-pt-blue-500 text-white text-sm font-medium transition-colors border-2 border-pt-blue-500 hover:bg-pt-blue-600 hover:border-pt-blue-600 disabled:opacity-50",
+
+  // ── Calendar overlay ──────────────────────────────────────────────────
+  calWrapper:       "relative",
+  noSlotsOverlay:   "absolute inset-0 z-10 flex items-center justify-center pt-20 pointer-events-none",
+
+  // ── Success state ──────────────────────────────────────────────────────
+  successSection: "mt-8 pt-8 border-t border-pt-blue-200",
+  successBox:     "p-6 bg-green-50 border border-green-200 text-green-800",
+  successTitle:   "font-medium",
+  successBody:    "text-sm mt-1",
+  successLink:    "mt-3 text-sm text-green-700 underline hover:text-green-800",
+};
+
 var selectedDate = null;
 var selectedDateSlots = [];
 
@@ -114,6 +156,7 @@ function Booking({ settings }) {
         });
         setSelectedSlotId(null);
         setNoSlotsInMonth(false);
+        fetchedRef.current = false;
         if (selectedDate) {
           var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDate + "\"]");
           if (dayEl) {
@@ -263,13 +306,10 @@ function Booking({ settings }) {
 
   var selectedSlot = slots.find(function (s) { return s.id === selectedSlotId; });
 
-  var inputClass = "w-full border border-pt-blue-200 bg-white px-3 py-2 text-gray-900 text-sm focus:outline-none focus:border-pt-blue-500 transition-colors";
-  var labelClass = "block text-sm font-medium text-gray-700 mb-1";
-
   return html`
     <div>
-      <p class="text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-5">Select Appointment Type</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
+      <p class=${CX.selectorLabel}>Select Appointment Type</p>
+      <div class=${CX.selectorGrid}>
         ${TYPES.map(function (t) {
           var active = service === t.id;
           return html`
@@ -277,22 +317,16 @@ function Booking({ settings }) {
               key=${t.id}
               onClick=${function () { setService(t.id); }}
               style="text-align:left; cursor:pointer;"
-              class=${
-                "flex items-center gap-4 p-4 w-full rounded-xl border transition-colors " +
-                (active ? "bg-pt-blue-500 border-pt-blue-500" : "bg-white border-pt-blue-200 hover:border-pt-blue-500")
-              }
+              class=${CX.typeBtn + " " + (active ? CX.typeBtnActive : CX.typeBtnInactive)}
             >
-              <div class=${
-                "w-8 h-8 rounded-full shrink-0 flex items-center justify-center border " +
-                (active ? "border-white/60" : "border-pt-blue-200")
-              }>
+              <div class=${CX.typeCircle + " " + (active ? CX.typeCircleActive : CX.typeCircleInactive)}>
                 ${active ? CHECK : null}
               </div>
               <div>
-                <p class=${"font-serif text-[1.0625rem] font-normal leading-snug " + (active ? "text-white" : "text-gray-900")}>
+                <p class=${CX.typeLabel + " " + (active ? CX.typeLabelActive : CX.typeLabelInactive)}>
                   ${t.label}
                 </p>
-                <p class=${"text-[0.6875rem] tracking-widest font-semibold mt-0.5 " + (active ? "text-white/70" : "text-pt-blue-500")}>
+                <p class=${CX.typeDuration + " " + (active ? CX.typeDurationActive : CX.typeDurationInactive)}>
                   ${t.duration}
                 </p>
               </div>
@@ -302,10 +336,10 @@ function Booking({ settings }) {
       </div>
 
       <div class="riverside-booking-wrap">
-        <div style="position:relative">
+        <div class=${CX.calWrapper}>
           <div ref=${calEl} id="riverside-calendar"></div>
           ${noSlotsInMonth ? html`
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-top:5rem;pointer-events:none;">
+            <div class=${CX.noSlotsOverlay}>
               <p style="font-size:0.875rem;color:#6b7280;border:1px solid #b8d4dc;background:#fff;padding:0.5rem 1rem;">
                 No availability this month
               </p>
@@ -331,10 +365,10 @@ function Booking({ settings }) {
       </div>
 
       ${success ? html`
-        <div class="mt-8 pt-8 border-t border-pt-blue-200">
-          <div class="p-6 bg-green-50 border border-green-200 text-green-800">
-            <p class="font-medium">Request received!</p>
-            <p class="text-sm mt-1">Thank you. We'll contact you shortly to confirm your appointment.</p>
+        <div class=${CX.successSection}>
+          <div class=${CX.successBox}>
+            <p class=${CX.successTitle}>Request received!</p>
+            <p class=${CX.successBody}>Thank you. We'll contact you shortly to confirm your appointment.</p>
             <button
               type="button"
               onClick=${function () {
@@ -346,82 +380,78 @@ function Booking({ settings }) {
                   });
                 }
               }}
-              class="mt-3 text-sm text-green-700 underline hover:text-green-800"
+              class=${CX.successLink}
             >Book another appointment</button>
           </div>
         </div>
       ` : null}
 
       ${selectedSlot ? html`
-        <form
-          onSubmit=${handleSubmit}
-          class="mt-8 pt-8 border-t border-pt-blue-200"
-        >
-          <p class="text-xs tracking-widest uppercase text-pt-blue-500 font-semibold mb-6">
-            Your Details
-          </p>
+        <form onSubmit=${handleSubmit} autocomplete="on" class=${CX.formSection}>
+          <p class=${CX.formHeading}>Your Details</p>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+          <div class=${CX.formGrid}>
             <div>
-              <label class=${labelClass}>
-                First name <span class="text-red-500">*</span>
+              <label class=${CX.formLabel}>
+                First name <span class=${CX.formRequired}>*</span>
               </label>
               <input
                 type="text"
+                name="first_name"
+                autocomplete="given-name"
                 required
                 value=${formData.firstName}
                 onInput=${function (e) { handleFormChange("firstName", e.target.value); }}
-                class=${inputClass}
+                class=${CX.formInput}
               />
             </div>
             <div>
-              <label class=${labelClass}>
-                Last name <span class="text-red-500">*</span>
+              <label class=${CX.formLabel}>
+                Last name <span class=${CX.formRequired}>*</span>
               </label>
               <input
                 type="text"
+                name="last_name"
+                autocomplete="family-name"
                 required
                 value=${formData.lastName}
                 onInput=${function (e) { handleFormChange("lastName", e.target.value); }}
-                class=${inputClass}
+                class=${CX.formInput}
               />
             </div>
             <div class="sm:col-span-2">
-              <label class=${labelClass}>
-                Phone number <span class="text-red-500">*</span>
+              <label class=${CX.formLabel}>
+                Phone number <span class=${CX.formRequired}>*</span>
               </label>
               <input
                 type="tel"
+                name="phone"
+                autocomplete="tel"
                 required
                 value=${formatPhone(formData.phone)}
                 onInput=${function (e) {
-                  // Compute from the tentative input value (supports free typing/paste/backspace anywhere).
-                  // We store the formatted result so the email and prefill see it nicely displayed.
-                  const next = formatPhone(e.target.value);
-                  handleFormChange("phone", next);
+                  handleFormChange("phone", formatPhone(e.target.value));
                 }}
-                class=${inputClass}
+                class=${CX.formInput}
               />
             </div>
           </div>
 
           <div class="mb-6">
-            <label class=${labelClass}>Comments</label>
+            <label class=${CX.formLabel}>Comments</label>
             <textarea
               rows="4"
+              name="comments"
+              autocomplete="off"
               value=${formData.comments}
               onInput=${function (e) { handleFormChange("comments", e.target.value); }}
-              class=${"resize-none " + inputClass}
+              class=${CX.formTextarea}
             ></textarea>
           </div>
 
-          ${submitError ? html`<p class="text-red-500 text-sm mb-4">${submitError}</p>` : null}
+          ${submitError ? html`<p class=${CX.formError}>${submitError}</p>` : null}
 
-          <button
-            type="submit"
-            disabled=${submitting}
-            class="px-[4em] py-[1em] bg-pt-blue-500 text-white text-sm font-medium transition-colors border-2 border-pt-blue-500 hover:bg-pt-blue-600 hover:border-pt-blue-600 disabled:opacity-50"
-          >
+          <button type="submit" disabled=${submitting} class=${CX.submitBtn}>
             ${submitting ? "Submitting…" : "Request appointment"}
           </button>
         </form>

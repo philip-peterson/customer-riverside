@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Request;
 class ScheduleController extends ControllerBase {
 
   private PrivateTempStore $tempStore;
-  private $configFactory;
 
   public function __construct(
     PrivateTempStoreFactory $tempStoreFactory,

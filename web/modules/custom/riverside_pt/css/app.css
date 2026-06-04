@@ -635,6 +635,10 @@ html {
   transform: translateY(-10px) rotate(-45deg);
 }
 
+.pointer-events-none{
+  pointer-events: none;
+}
+
 .static{
   position: static;
 }
@@ -665,6 +669,10 @@ html {
 
 .top-1\/2{
   top: 50%;
+}
+
+.z-10{
+  z-index: 10;
 }
 
 .mx-auto{
@@ -1305,6 +1313,10 @@ html {
 
 .pt-8{
   padding-top: 2rem;
+}
+
+.pt-20{
+  padding-top: 5rem;
 }
 
 .text-left{
