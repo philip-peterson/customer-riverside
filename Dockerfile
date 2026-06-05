@@ -81,17 +81,16 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Pass container env vars through to PHP-FPM workers; capture worker stderr so errors appear in container logs.
-RUN { \
+# Pass container env vars through to PHP-FPM workers; log errors to /var/log.
+RUN sed -i 's|;error_log = log/php-fpm.log|error_log = /var/log/php-fpm.log|' /usr/local/etc/php-fpm.conf && \
+    { \
       echo 'clear_env = no'; \
       echo 'catch_workers_output = yes'; \
       echo 'php_admin_flag[log_errors] = on'; \
-      echo 'php_admin_value[error_log] = /dev/stderr'; \
+      echo 'php_admin_value[error_log] = /var/log/php-fpm.www.log'; \
     } >> /usr/local/etc/php-fpm.d/zz-env.conf
 
-RUN chown -R www-data:www-data web/sites/default/files && \
-    chmod -R 755 web/sites/default/files && \
-    chmod 444 web/sites/default/settings.php
+RUN chmod 444 web/sites/default/settings.php
 
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]

@@ -12,6 +12,9 @@ for var in SITE_NAME ADMIN_PASS; do
   fi
 done
 
+chown -R www-data:www-data /var/www/html/web/sites/default/files
+chmod -R 755 /var/www/html/web/sites/default/files
+
 echo "[entrypoint] Waiting for PostgreSQL at ${DB_HOST}..."
 until pg_isready -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -q; do
   sleep 1
