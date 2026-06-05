@@ -30,7 +30,7 @@ if ($is_dev) {
   }
   $config['system.mail']['interface']['default'] = 'symfony_mailer';
   $config['system.mail']['mailer_dsn'] = [
-    'scheme'   => 'postmark+api',
+    'scheme'   => 'postmark+smtp',
     'host'     => 'default',
     'user'     => $postmark_key,
     'password' => NULL,
