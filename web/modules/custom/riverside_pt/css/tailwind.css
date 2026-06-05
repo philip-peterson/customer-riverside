@@ -23,6 +23,46 @@
 }
 
 @layer components {
+  /* Shared design tokens */
+  .rpt-link {
+    @apply text-pt-blue-500 hover:underline;
+  }
+  .rpt-btn {
+    @apply inline-flex items-center gap-3 px-5 py-3 bg-pt-blue-500 text-white text-[15px] font-medium no-underline transition-colors hover:bg-pt-blue-600;
+  }
+  .rpt-section {
+    @apply py-16 px-6 bg-white;
+  }
+  .rpt-container {
+    @apply max-w-[1040px] mx-auto;
+  }
+  .rpt-heading-lg {
+    @apply text-2xl font-normal text-gray-900;
+  }
+  .rpt-heading-md {
+    @apply text-xl font-normal mb-3;
+  }
+  .rpt-body-text {
+    @apply text-[15px] text-gray-600 leading-relaxed;
+  }
+  .rpt-eyebrow {
+    @apply text-xs tracking-widest uppercase text-pt-blue-500 font-semibold;
+  }
+  /* Service/info card */
+  .rpt-card {
+    @apply flex flex-col border border-pt-blue-200 bg-white overflow-hidden;
+  }
+  .rpt-card__body {
+    @apply flex flex-col gap-4 p-6 flex-1;
+  }
+  .rpt-card__img {
+    @apply w-full h-48 object-cover;
+  }
+  /* Rounded info card (about page pillars, etc.) */
+  .rpt-card-rounded {
+    @apply bg-white p-6 rounded-xl border border-pt-blue-200;
+  }
+
   /* Mobile nav: max-height slide can't be expressed with utilities alone */
   @media (max-width: calc(theme('screens.md') - 1px)) {
     #rpt-main-nav {
