@@ -56,26 +56,13 @@ $DRUSH en -y views views_ui field_ui text options link datetime && \
   echo "[entrypoint] Core modules enabled." || echo "[entrypoint] WARNING: core modules failed."
 $DRUSH en -y webform webform_ui && \
   echo "[entrypoint] Webform enabled." || echo "[entrypoint] WARNING: webform failed."
-$DRUSH en -y symfony_mailer mailer_transport && \
+$DRUSH en -y symfony_mailer && \
   echo "[entrypoint] Mailer enabled." || echo "[entrypoint] WARNING: symfony_mailer failed."
 
-if [ -n "${POSTMARK_API_KEY:-}" ]; then
-  $DRUSH php:eval "
-    \$storage = \Drupal::entityTypeManager()->getStorage('mailer_transport');
-    if (!\$storage->load('postmark')) {
-      \$storage->create([
-        'id' => 'postmark',
-        'label' => 'Postmark',
-        'plugin' => 'dsn',
-        'configuration' => ['dsn' => 'postmark+api://' . getenv('POSTMARK_API_KEY') . '@default'],
-      ])->save();
-    }
-    \Drupal::configFactory()->getEditable('mailer_transport.settings')
-      ->set('default_transport', 'postmark')->save();
-    \Drupal::configFactory()->getEditable('system.mail')
-      ->set('interface.default', 'symfony_mailer')->save();
-  " && echo "[entrypoint] Postmark transport configured." || { echo "[entrypoint] FATAL: Postmark transport setup failed."; exit 1; }
-fi
+# Mail transport is configured via $config['system.mail']['mailer_dsn'] in settings.php,
+# which is read directly by Drupal core's symfony_mailer mail plugin.
+# Do NOT use the mailer_transport module's entity system for this — it is only a UI layer
+# and is not consulted by core when actually sending mail.
 $DRUSH en -y riverside_pt && \
   echo "[entrypoint] riverside_pt enabled." || echo "[entrypoint] WARNING: riverside_pt failed."
 

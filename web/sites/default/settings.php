@@ -20,11 +20,23 @@ $settings['hash_salt'] = getenv('HASH_SALT') ?: 'replace-this-in-production';
 $settings['update_free_access'] = FALSE;
 
 $is_dev = (bool) getenv('DEBUG');
+$postmark_key = getenv('POSTMARK_API_KEY');
 
 if ($is_dev) {
   $config['system.mail']['interface']['default'] = 'php_mail';
-} elseif (!getenv('POSTMARK_API_KEY')) {
-  throw new \RuntimeException('POSTMARK_API_KEY is not set — refusing to start without a mail transport.');
+} else {
+  if (!$postmark_key) {
+    throw new \RuntimeException('POSTMARK_API_KEY is not set — refusing to start without a mail transport.');
+  }
+  $config['system.mail']['interface']['default'] = 'symfony_mailer';
+  $config['system.mail']['mailer_dsn'] = [
+    'scheme'   => 'postmark+api',
+    'host'     => 'default',
+    'user'     => $postmark_key,
+    'password' => NULL,
+    'port'     => NULL,
+    'options'  => [],
+  ];
 }
 
 // Disable CSS/JS aggregation — assets served directly from source paths.
