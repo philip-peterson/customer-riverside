@@ -19,20 +19,17 @@ $settings['hash_salt'] = getenv('HASH_SALT') ?: 'replace-this-in-production';
 
 $settings['update_free_access'] = FALSE;
 
-if ($postmark_key = getenv('POSTMARK_API_KEY')) {
-  $config['symfony_mailer.mailer_transport.postmark']['configuration']['dsn'] =
-    'postmark+api://' . $postmark_key . '@default';
-}
-
-// On localhost/DEBUG, use the core 'php_mail' interface (which respects sendmail_path
-// from php.ini, overridden to our fake-sendmail.sh that logs the email to console
-// and always succeeds). This guarantees booking requests never fail with
-// "mail_failed" during development.
-// In non-DEBUG (production), use symfony_mailer + Postmark.
 $is_dev = (bool) getenv('DEBUG');
+$postmark_key = getenv('POSTMARK_API_KEY');
+
 if ($is_dev) {
   $config['system.mail']['interface']['default'] = 'php_mail';
-} elseif ($postmark_key) {
+} else {
+  if (!$postmark_key) {
+    throw new \RuntimeException('POSTMARK_API_KEY is not set — refusing to start without a mail transport.');
+  }
+  $config['symfony_mailer.mailer_transport.postmark']['configuration']['dsn'] =
+    'postmark+api://' . $postmark_key . '@default';
   $config['mailer_transport.settings']['default_transport'] = 'postmark';
   $config['system.mail']['interface']['default'] = 'symfony_mailer';
 }
