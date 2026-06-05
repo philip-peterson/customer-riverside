@@ -1,0 +1,5 @@
+services:
+  riverside_pt.php_error_logger:
+    class: Drupal\riverside_pt\Logger\PhpErrorLogger
+    tags:
+      - { name: logger }
