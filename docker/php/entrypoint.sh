@@ -66,15 +66,15 @@ if [ -n "${POSTMARK_API_KEY:-}" ]; then
       \$storage->create([
         'id' => 'postmark',
         'label' => 'Postmark',
-        'plugin' => 'smtp',
+        'plugin' => 'dsn',
         'configuration' => ['dsn' => 'postmark+api://' . getenv('POSTMARK_API_KEY') . '@default'],
       ])->save();
     }
-    \$config = \Drupal::configFactory()->getEditable('mailer_transport.settings');
-    \$config->set('default_transport', 'postmark')->save();
+    \Drupal::configFactory()->getEditable('mailer_transport.settings')
+      ->set('default_transport', 'postmark')->save();
     \Drupal::configFactory()->getEditable('system.mail')
       ->set('interface.default', 'symfony_mailer')->save();
-  " && echo "[entrypoint] Postmark transport configured." || echo "[entrypoint] WARNING: Postmark transport setup failed."
+  " && echo "[entrypoint] Postmark transport configured." || { echo "[entrypoint] FATAL: Postmark transport setup failed."; exit 1; }
 fi
 $DRUSH en -y riverside_pt && \
   echo "[entrypoint] riverside_pt enabled." || echo "[entrypoint] WARNING: riverside_pt failed."
