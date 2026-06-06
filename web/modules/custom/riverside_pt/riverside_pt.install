@@ -204,6 +204,7 @@ function _riverside_pt_rebuild(): void {
 
   \Drupal::configFactory()->getEditable('system.site')
     ->set('name', 'Riverside Therapeutics')
+    ->set('mail', 'info@coldairnetworks.com')
     ->set('page.front', '/home')
     ->save();
 }
