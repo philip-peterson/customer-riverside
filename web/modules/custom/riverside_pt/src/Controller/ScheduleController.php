@@ -3,6 +3,7 @@
 namespace Drupal\riverside_pt\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Flood\FloodInterface;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Mail\MailManagerInterface;
@@ -13,12 +14,16 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ScheduleController extends ControllerBase {
 
+  const FLOOD_IP_WINDOW    = 3600;  // 1 hour
+  const FLOOD_EMAIL_WINDOW = 86400; // 24 hours
+
   private PrivateTempStore $tempStore;
 
   public function __construct(
     PrivateTempStoreFactory $tempStoreFactory,
     private readonly MailManagerInterface $mailManager,
     ConfigFactoryInterface $configFactory,
+    private readonly FloodInterface $flood,
   ) {
     $this->tempStore = $tempStoreFactory->get('riverside_pt');
     $this->configFactory = $configFactory;
@@ -29,6 +34,7 @@ class ScheduleController extends ControllerBase {
       $container->get('tempstore.private'),
       $container->get('plugin.manager.mail'),
       $container->get('config.factory'),
+      $container->get('flood'),
     );
   }
 
@@ -53,6 +59,18 @@ class ScheduleController extends ControllerBase {
     // validate, send the request email immediately, and return success.
     // This replaces the previous /schedule/book form page.
     if ($firstName && $lastName && $email && $phone) {
+      $ip = $request->getClientIp();
+
+      if (!$this->flood->isAllowed('riverside_pt.booking_ip', 5, self::FLOOD_IP_WINDOW, $ip)) {
+        return new JsonResponse(['error' => 'rate_limited', 'message' => 'Too many requests. Please try again later.'], 429);
+      }
+      if (!$this->flood->isAllowed('riverside_pt.booking_email', 3, self::FLOOD_EMAIL_WINDOW, $email)) {
+        return new JsonResponse(['error' => 'rate_limited', 'message' => 'Too many requests. Please try again later.'], 429);
+      }
+
+      $this->flood->register('riverside_pt.booking_ip', self::FLOOD_IP_WINDOW, $ip);
+      $this->flood->register('riverside_pt.booking_email', self::FLOOD_EMAIL_WINDOW, $email);
+
       // Prevent double-booking against existing appointment nodes (same logic as before).
       $conflict = \Drupal::entityQuery('node')
         ->condition('type', 'appointment')
