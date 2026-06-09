@@ -1,5 +1,3 @@
-import zenscroll from "https://esm.sh/zenscroll@4.0.2";
-
 var FIXED_BUFFER = 0; // breathing room below fixed header when menu is closed
 
 // Returns the effective scroll offset to clear the header.
@@ -15,6 +13,13 @@ function headerOffset() {
   return header.offsetHeight + (menuOpen ? 0 : FIXED_BUFFER);
 }
 
+function scrollToEl(el, animate) {
+  var top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - headerOffset());
+  window.scrollTo({ top: top, behavior: animate ? "smooth" : "instant" });
+}
+
+window.rptScrollTo = scrollToEl;
+
 // On load: scroll to the anchor from either the URL hash or drupalSettings
 // (set by the server when rendering the home page at a clean URL like /services).
 document.addEventListener("DOMContentLoaded", function () {
@@ -24,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var target = document.querySelector(anchor);
   if (!target) return;
   requestAnimationFrame(function () {
-    zenscroll.toY(Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset()), 0);
+    scrollToEl(target, false);
   });
 });
 
@@ -35,5 +40,5 @@ document.addEventListener("click", function (e) {
   if (!target) return;
   e.preventDefault();
   history.pushState({}, "", link.getAttribute("href"));
-  zenscroll.toY(Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset()), 400);
+  scrollToEl(target, true);
 });

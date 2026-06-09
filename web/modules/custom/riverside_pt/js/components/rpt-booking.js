@@ -123,6 +123,9 @@ function BookingPanel({ service, settings }) {
   const selectedDateSlotsRef = useRef([]);
   const currentEventsRef = useRef([]);
   const initDate = useMemo(nextBusinessDay, []);
+  const formRef = useRef(null);
+  const prevSlotIdRef = useRef(null);
+  const successRef = useRef(null);
 
   function buildEventsUrl() {
     return settings.eventsUrl + "?service=" + service;
@@ -273,6 +276,19 @@ function BookingPanel({ service, settings }) {
     }
   }, [fetchedEvents]);
 
+  useEffect(function () {
+    if (selectedSlotId && !prevSlotIdRef.current && formRef.current) {
+      window.rptScrollTo(formRef.current, true);
+    }
+    prevSlotIdRef.current = selectedSlotId;
+  }, [selectedSlotId]);
+
+  useEffect(function () {
+    if (success && successRef.current) {
+      window.rptScrollTo(successRef.current, true);
+    }
+  }, [success]);
+
   function handleSlotClick(slot) {
     setSelectedSlotId(slot.id);
     setSubmitError(null);
@@ -373,7 +389,7 @@ function BookingPanel({ service, settings }) {
       </div>
 
       ${!success && selectedSlot ? html`
-        <form onSubmit=${handleSubmit} autocomplete="on" class=${CX.formSection}>
+        <form ref=${formRef} onSubmit=${handleSubmit} autocomplete="on" class=${CX.formSection}>
           <p class=${CX.formHeading}>Your Details</p>
 
           <div class=${CX.formGrid}>
@@ -466,7 +482,7 @@ function BookingPanel({ service, settings }) {
       ` : null}
 
       ${success && confirmedAppointment ? html`
-        <div class=${CX.successSection}>
+        <div ref=${successRef} class=${CX.successSection}>
           <div class=${CX.successBox}>
             <p class=${CX.successTitle}>Request received!</p>
             <div class=${CX.successSummary}>
