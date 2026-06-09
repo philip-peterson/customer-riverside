@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: forge.quinefoundation.com
+  IMAGE: forge.quinefoundation.com/cold-air-networks/customer-riverside
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to registry
+        run: |
+          echo "${{ secrets.FORGE_TOKEN }}" \
+            | docker login "$REGISTRY" -u "${{ secrets.FORGE_USER }}" --password-stdin
+
+      - name: Build and push
+        run: |
+          docker build -t "$IMAGE:${{ github.sha }}" .
+          docker push "$IMAGE:${{ github.sha }}"
+
+  bump-infra:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bump riverside in infra repo
+        env:
+          FORGE_TOKEN: ${{ secrets.FORGE_TOKEN }}
+          FORGE_USER: ${{ secrets.FORGE_USER }}
+          SHA: ${{ github.sha }}
+        run: |
+          git clone "https://${FORGE_USER}:${FORGE_TOKEN}@forge.quinefoundation.com/Cold-Air-Networks/petersweb-infra.git" infra
+          cd infra
+
+          BRANCH="bump-riverside-${SHA:0:7}"
+          git checkout -b "$BRANCH"
+
+          ./bump-riverside.sh "sha:$SHA"
+
+          git config user.email "ci@quinefoundation.com"
+          git config user.name "CI"
+          git add -A
+          git commit -m "bump riverside to ${SHA:0:7}"
+          git push origin "$BRANCH"
+
+          curl -sf -X POST \
+            -H "Authorization: token $FORGE_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://forge.quinefoundation.com/api/v1/repos/Cold-Air-Networks/petersweb-infra/pulls" \
+            -d "{
+              \"title\": \"bump riverside to ${SHA:0:7}\",
+              \"head\": \"$BRANCH\",
+              \"base\": \"main\",
+              \"body\": \"Automated bump from Cold-Air-Networks/customer-riverside@$SHA\"
+            }"
