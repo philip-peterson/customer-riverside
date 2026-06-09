@@ -11,23 +11,15 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_HOST: tcp://dind:2375
-      DOCKER_TLS_CERTDIR: ""
-    services:
-      dind:
-        image: docker:dind
-        env:
-          DOCKER_TLS_CERTDIR: ""
-        options: --privileged
+    container:
+      image: docker:dind
+      options: --privileged
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install docker CLI
-        run: apk add --no-cache docker-cli || apt-get install -y docker.io || true
-
-      - name: Wait for Docker daemon
+      - name: Start Docker daemon
         run: |
+          nohup dockerd &>/var/log/dockerd.log &
           until docker info >/dev/null 2>&1; do sleep 1; done
 
       - name: Log in to registry
