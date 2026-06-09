@@ -6,19 +6,17 @@ on:
 
 env:
   REGISTRY: forge.quinefoundation.com
-  IMAGE: forge.quinefoundation.com/cold-air-networks/customer-riverside
+  IMAGE: forge.quinefoundation.com/ironmagma/customer-riverside
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: docker:dind
-      options: --privileged
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start Docker daemon
+      - name: Install and start Docker
         run: |
+          apt-get update -qq && apt-get install -y --no-install-recommends docker.io
           nohup dockerd &>/var/log/dockerd.log &
           until docker info >/dev/null 2>&1; do sleep 1; done
 
