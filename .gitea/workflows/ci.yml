@@ -14,11 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install and start Docker
+      - name: Install Docker from static binary
         run: |
-          apt-get update -qq && apt-get install -y --no-install-recommends docker.io
-          nohup dockerd &>/var/log/dockerd.log &
-          until docker info >/dev/null 2>&1; do sleep 1; done
+          curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-27.5.1.tgz \
+            | tar -xz -C /tmp
+          echo "/tmp/docker" >> "$GITHUB_PATH"
+
+      - name: Start Docker daemon
+        run: |
+          mkdir -p /tmp/docker-data /tmp/docker-run
+          nohup /tmp/docker/dockerd \
+            --host=unix:///tmp/docker-run/docker.sock \
+            --data-root=/tmp/docker-data \
+            &>/tmp/dockerd.log &
+          echo "DOCKER_HOST=unix:///tmp/docker-run/docker.sock" >> "$GITHUB_ENV"
+          until /tmp/docker/docker --host=unix:///tmp/docker-run/docker.sock info >/dev/null 2>&1; do
+            sleep 1
+          done
 
       - name: Log in to registry
         run: |
