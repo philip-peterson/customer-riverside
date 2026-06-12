@@ -31,7 +31,10 @@ if [ "${DRUPAL_FAST:-}" = "1" ]; then
   echo "[entrypoint] DRUPAL_FAST=1 — skipping database wipe and full site reinstall."
 else
   echo "[entrypoint] Full rebuild mode (default). Dropping database..."
-  $DRUSH sql:drop -y || true
+  # DROP SCHEMA ... CASCADE is more reliable than drush sql:drop on PostgreSQL:
+  # it removes all tables atomically regardless of dependency order, so
+  # site:install always starts from a completely clean schema.
+  $DRUSH sql:query "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO ${DB_USER}; GRANT ALL ON SCHEMA public TO public;" || true
 
   echo "[entrypoint] Installing Drupal (standard profile)..."
   $DRUSH site:install standard \
@@ -40,6 +43,9 @@ else
     --account-pass="$ADMIN_PASS" \
     -y || { echo "[entrypoint] FATAL: site:install failed."; exit 1; }
   echo "[entrypoint] Drupal installed."
+
+  $DRUSH sql:query "SELECT 1 FROM flood LIMIT 1" >/dev/null 2>&1 \
+    || { echo "[entrypoint] FATAL: flood table missing after site:install — schema incomplete."; exit 1; }
 
   # Clear semaphores immediately after fresh install (prevents early
   # duplicate key errors during first module enables + rebuild).
