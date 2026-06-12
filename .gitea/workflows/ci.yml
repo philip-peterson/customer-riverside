@@ -41,8 +41,8 @@ jobs:
     steps:
       - name: Bump riverside in infra repo
         env:
-          FORGE_TOKEN: ${{ secrets.FORGE_TOKEN }}
-          FORGE_USER: ${{ secrets.FORGE_USER }}
+          FORGE_TOKEN: ${{ secrets.REGISTRY_PASSWORD  }}
+          FORGE_USER: ${{ secrets.REGISTRY_USERNAME }}
           SHA: ${{ github.sha }}
         run: |
           git clone "https://${FORGE_USER}:${FORGE_TOKEN}@forge.quinefoundation.com/Cold-Air-Networks/petersweb-infra.git" infra
