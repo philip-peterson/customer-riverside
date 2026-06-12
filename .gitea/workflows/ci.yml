@@ -26,9 +26,10 @@ jobs:
           git checkout "${{ github.sha }}"
 
       - name: Log in to registry
-        run: |
-          echo "${{ secrets.FORGE_TOKEN }}" \
-            | podman login "$REGISTRY" -u "${{ secrets.FORGE_USER }}" --password-stdin
+        env:
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+        run: echo "$REGISTRY_PASSWORD" | podman login "$REGISTRY" -u "$REGISTRY_USERNAME" --password-stdin
 
       - name: Build and push
         run: |
