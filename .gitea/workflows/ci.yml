@@ -14,33 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Docker from static binary
-        run: |
-          curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-27.5.1.tgz \
-            | tar -xz -C /tmp
-          echo "/tmp/docker" >> "$GITHUB_PATH"
-
-      - name: Start Docker daemon
-        run: |
-          mkdir -p /tmp/docker-data /tmp/docker-run
-          nohup /tmp/docker/dockerd \
-            --host=unix:///tmp/docker-run/docker.sock \
-            --data-root=/tmp/docker-data \
-            &>/tmp/dockerd.log &
-          echo "DOCKER_HOST=unix:///tmp/docker-run/docker.sock" >> "$GITHUB_ENV"
-          until /tmp/docker/docker --host=unix:///tmp/docker-run/docker.sock info >/dev/null 2>&1; do
-            sleep 1
-          done
+      - name: Install Podman
+        run: sudo apt-get update -qq && sudo apt-get install -y podman
 
       - name: Log in to registry
         run: |
           echo "${{ secrets.FORGE_TOKEN }}" \
-            | docker login "$REGISTRY" -u "${{ secrets.FORGE_USER }}" --password-stdin
+            | podman login "$REGISTRY" -u "${{ secrets.FORGE_USER }}" --password-stdin
 
       - name: Build and push
         run: |
-          docker build -t "$IMAGE:${{ github.sha }}" .
-          docker push "$IMAGE:${{ github.sha }}"
+          podman build -t "$IMAGE:${{ github.sha }}" .
+          podman push "$IMAGE:${{ github.sha }}"
 
   bump-infra:
     needs: build
