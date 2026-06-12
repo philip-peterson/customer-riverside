@@ -28,7 +28,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
         exif \
         bcmath
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 ENV PATH="/var/www/html/vendor/bin:${PATH}"
 
