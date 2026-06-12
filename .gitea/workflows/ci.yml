@@ -49,7 +49,7 @@ jobs:
     steps:
       - name: Bump riverside in infra repo
         env:
-          FORGE_TOKEN: ${{ secrets.REGISTRY_PASSWORD  }}
+          FORGE_TOKEN: ${{ secrets.INFRA_TOKEN }}
           FORGE_USER: ${{ secrets.REGISTRY_USERNAME }}
           SHA: ${{ github.sha }}
           IMAGE_DIGEST: ${{ needs.build.outputs.image_digest }}
