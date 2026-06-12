@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and push
         run: |
-          podman build -t "$IMAGE:${{ github.sha }}" .
+          podman build --layers=false -t "$IMAGE:${{ github.sha }}" .
           podman push "$IMAGE:${{ github.sha }}"
 
   bump-infra:

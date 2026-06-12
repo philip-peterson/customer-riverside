@@ -56,6 +56,7 @@ RUN composer config repositories.drupal composer https://packages.drupal.org/8 \
 # ── Stage 3: Runtime image ────────────────────────────────────────────────────
 FROM php:8.5-fpm
 
+# ── System packages ───────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
@@ -71,47 +72,45 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy compiled PHP extension .so files and their ini enablement files
+# ── PHP extensions from build stage ──────────────────────────────────────────
 COPY --from=php-build /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
 COPY --from=php-build /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 
-ENV PATH="/var/www/html/vendor/bin:${PATH}"
-
-WORKDIR /var/www/html
-
-# Copy scaffolded vendor + web/ from composer stage
-COPY --from=php-build /var/www/html/ ./
-
-# Overlay site-specific files on top of the scaffolded web/
-COPY web/sites/default/settings.php web/sites/default/settings.php
-COPY web/sites/default/files/ web/sites/default/files/
-COPY web/modules/custom/ web/modules/custom/
-
-# Overwrite with the minified CSS built in the node stage
-COPY --from=node-build /build/web/modules/custom/riverside_pt/css/app.css \
-    web/modules/custom/riverside_pt/css/app.css
-
-ARG FULLCALENDAR_VERSION=6.1.15
-RUN curl -fsSL "https://cdn.jsdelivr.net/npm/fullcalendar@${FULLCALENDAR_VERSION}/index.global.min.js" \
-         -o web/modules/custom/riverside_pt/js/fullcalendar.min.js
-
-COPY config/sync/ config/sync/
-
+# ── All system config — done before the big vendor COPY so VFS snapshots are small ──
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf.template
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+    && sed -i 's|;error_log = log/php-fpm.log|error_log = /var/log/php-fpm.log|' /usr/local/etc/php-fpm.conf \
+    && { \
+         echo 'clear_env = no'; \
+         echo 'catch_workers_output = yes'; \
+         echo 'php_admin_flag[log_errors] = on'; \
+         echo 'php_admin_value[error_log] = /var/log/php-fpm.www.log'; \
+       } >> /usr/local/etc/php-fpm.d/zz-env.conf
 
-RUN sed -i 's|;error_log = log/php-fpm.log|error_log = /var/log/php-fpm.log|' /usr/local/etc/php-fpm.conf && \
-    { \
-      echo 'clear_env = no'; \
-      echo 'catch_workers_output = yes'; \
-      echo 'php_admin_flag[log_errors] = on'; \
-      echo 'php_admin_value[error_log] = /var/log/php-fpm.www.log'; \
-    } >> /usr/local/etc/php-fpm.d/zz-env.conf
+ENV PATH="/var/www/html/vendor/bin:${PATH}"
+WORKDIR /var/www/html
 
-RUN chmod 444 web/sites/default/settings.php
+# ── Large data layers (VFS snapshots are expensive past this point) ───────────
+
+# Scaffolded vendor/ + web/ from composer stage
+COPY --from=php-build /var/www/html/ ./
+
+# Site-specific overlays on top of the scaffold
+COPY web/sites/default/settings.php web/sites/default/settings.php
+COPY web/sites/default/files/ web/sites/default/files/
+COPY web/modules/custom/ web/modules/custom/
+COPY --from=node-build /build/web/modules/custom/riverside_pt/css/app.css \
+    web/modules/custom/riverside_pt/css/app.css
+COPY config/sync/ config/sync/
+
+# Download FullCalendar and lock settings.php in one layer
+ARG FULLCALENDAR_VERSION=6.1.15
+RUN curl -fsSL "https://cdn.jsdelivr.net/npm/fullcalendar@${FULLCALENDAR_VERSION}/index.global.min.js" \
+         -o web/modules/custom/riverside_pt/js/fullcalendar.min.js \
+    && chmod 444 web/sites/default/settings.php
 
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
