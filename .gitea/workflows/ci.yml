@@ -15,7 +15,15 @@ jobs:
       image: quay.io/podman/stable
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - name: Install git
+        run: dnf install -y --quiet git-core
+
+      - name: Checkout
+        run: |
+          git clone --depth=1 \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@${{ env.REGISTRY }}/${{ github.repository }}.git" \
+            .
+          git checkout "${{ github.sha }}"
 
       - name: Log in to registry
         run: |
