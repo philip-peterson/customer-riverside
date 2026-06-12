@@ -56,17 +56,15 @@ RUN composer config repositories.drupal composer https://packages.drupal.org/8 \
 # ── Stage 3: Runtime image ────────────────────────────────────────────────────
 FROM php:8.5-fpm
 
-# Runtime libs for the compiled PHP extensions (no dev headers).
-# php:8.5-fpm is Debian Trixie: libzip4 → libzip4t64.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
     postgresql-client \
-    libpq5 \
-    libpng16-16 \
-    libjpeg62-turbo \
-    libfreetype6 \
-    libzip4t64 \
+    libpq-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype-dev \
+    libzip-dev \
     locales \
     curl \
     gettext-base \
