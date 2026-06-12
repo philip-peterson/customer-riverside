@@ -54,18 +54,18 @@ jobs:
           SHA: ${{ github.sha }}
           IMAGE_DIGEST: ${{ needs.build.outputs.image_digest }}
         run: |
-          rm -rf /root/petersweb-infra
-          git clone "https://${FORGE_USER}:${FORGE_TOKEN}@forge.quinefoundation.com/Cold-Air-Networks/petersweb-infra.git" /root/petersweb-infra
-          cd /root/petersweb-infra
+          git clone "https://${FORGE_USER}:${FORGE_TOKEN}@forge.quinefoundation.com/Cold-Air-Networks/petersweb-infra.git" infra
+          cd infra
 
           BRANCH="bump-riverside-${SHA:0:7}"
           git checkout -b "$BRANCH"
 
-          ./bump-riverside.sh "$IMAGE_DIGEST"
+          sed -i -E "s|(riverside@sha256:)[0-9a-f]{64}|\1${IMAGE_DIGEST}|" \
+            nixos/arion-riverside/arion-compose.nix
 
           git config user.email "ci@quinefoundation.com"
           git config user.name "CI"
-          git add -A
+          git add nixos/arion-riverside/arion-compose.nix
           git commit -m "bump riverside to ${SHA:0:7}"
           git push origin "$BRANCH"
 
