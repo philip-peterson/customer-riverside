@@ -57,8 +57,7 @@ RUN composer config repositories.drupal composer https://packages.drupal.org/8 \
 FROM php:8.5-fpm
 
 # Runtime libs for the compiled PHP extensions (no dev headers).
-# If php:8.5-fpm is based on Debian Trixie, rename libpng16-16 → libpng16-16t64
-# and libzip4 → libzip4t64 if this apt-get step fails.
+# php:8.5-fpm is Debian Trixie: libzip4 → libzip4t64.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
@@ -67,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng16-16 \
     libjpeg62-turbo \
     libfreetype6 \
-    libzip4 \
+    libzip4t64 \
     locales \
     curl \
     gettext-base \
