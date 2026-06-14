@@ -29,6 +29,9 @@ const FAQS = [
   },
 ];
 
+/**
+ * @param {{ item: {q: string, a: string}, open: boolean, onToggle: () => void }} props
+ */
 function FaqItem({ item, open, onToggle }) {
   return html`
     <div class="border-b border-gray-200">
@@ -50,9 +53,9 @@ function FaqItem({ item, open, onToggle }) {
 }
 
 function Faq() {
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openIndex, setOpenIndex] = useState(/** @type {number | null} */ (null));
 
-  const toggle = function(i) {
+  const toggle = function(/** @type {number} */ i) {
     setOpenIndex(function(prev) { return prev === i ? null : i; });
   };
 

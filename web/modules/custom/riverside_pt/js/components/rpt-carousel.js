@@ -12,7 +12,7 @@ const IMAGES = [
 function Carousel() {
   const [index, setIndex] = useState(0);
   const [itemWidth, setItemWidth] = useState(0);
-  const containerRef = useRef(null);
+  const containerRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useLayoutEffect(() => {
     const update = () => {

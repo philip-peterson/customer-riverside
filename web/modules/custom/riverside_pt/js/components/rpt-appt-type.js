@@ -16,6 +16,7 @@ const CHECK = html`<svg width="14" height="11" viewBox="0 0 14 11" fill="none" x
 function ApptType() {
   const [selected, setSelected] = useState("diagnostic");
 
+  /** @param {string} id */
   function select(id) {
     setSelected(id);
     document.dispatchEvent(new CustomEvent("rpt:appt-type-change", { detail: { type: id } }));

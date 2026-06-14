@@ -35,10 +35,10 @@ const STEP = CARD_W + GAP;
 const TOTAL_W = TESTIMONIALS.length * CARD_W + (TESTIMONIALS.length - 1) * GAP;
 
 function Testimonials() {
-  const containerRef = useRef(null);
-  const trackRef = useRef(null);
+  const containerRef = useRef(/** @type {HTMLDivElement | null} */ (null));
+  const trackRef = useRef(/** @type {HTMLDivElement | null} */ (null));
   const [left, setLeft] = useState(0);
-  const [, forceUpdate] = useReducer(function (n) { return n + 1; }, 0);
+  const [, forceUpdate] = useReducer(/** @type {(n: number, action?: any) => number} */ (function (n) { return n + 1; }), 0);
 
   function measureMax() {
     if (!containerRef.current) return 0;
@@ -55,13 +55,14 @@ function Testimonials() {
   };
 
   useEffect(function () {
+    /** @type {number | undefined} */
     var timer;
     function onResize() {
       clearTimeout(timer);
       timer = setTimeout(function () {
         var max = measureMax();
         setLeft(function (l) { return Math.min(0, Math.max(-max, l)); });
-        forceUpdate();
+        forceUpdate(0);
       }, 150);
     }
     window.addEventListener("resize", onResize);
@@ -71,23 +72,26 @@ function Testimonials() {
     };
   }, []);
 
-  var drag = useRef(null); // null when idle, {x, left} when dragging
+  var drag = useRef(/** @type {{x: number, left: number} | null} */ (null)); // null when idle, {x, left} when dragging
 
+  /** @param {PointerEvent} e */
   var onPointerDown = function (e) {
     drag.current = { x: e.clientX, left: left };
-    trackRef.current.style.transition = "none";
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (trackRef.current) trackRef.current.style.transition = "none";
+    if (e.currentTarget instanceof Element) e.currentTarget.setPointerCapture(e.pointerId);
   };
 
+  /** @param {PointerEvent} e */
   var onPointerMove = function (e) {
     if (!drag.current) return;
     setLeft(drag.current.left + (e.clientX - drag.current.x));
   };
 
+  /** @param {PointerEvent} e */
   var onPointerUp = function (e) {
     if (!drag.current) return;
     drag.current = null;
-    trackRef.current.style.transition = "left 0.5s ease";
+    if (trackRef.current) trackRef.current.style.transition = "left 0.5s ease";
     var max = measureMax();
     setLeft(function (l) {
       var clamped = Math.min(0, Math.max(-max, l));

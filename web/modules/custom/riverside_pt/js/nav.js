@@ -2,8 +2,8 @@
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function () {
-    var btn = document.querySelector('.rpt-header__hamburger');
-    var nav = document.getElementById('rpt-main-nav');
+    const btn = document.querySelector('.rpt-header__hamburger');
+    const nav = document.getElementById('rpt-main-nav');
     if (!btn || !nav) return;
 
     btn.addEventListener('click', function () {
@@ -20,7 +20,7 @@
     });
 
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.rpt-header')) {
+      if (!(e.target instanceof Element) || !e.target.closest('.rpt-header')) {
         nav.classList.remove('is-open');
         btn.setAttribute('aria-expanded', 'false');
       }

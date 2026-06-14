@@ -1,4 +1,5 @@
 (function () {
+  /** @param {unknown} raw */
   function formatPhone(raw) {
     let d = String(raw || "").replace(/\D/g, "");
     if (d.length === 11 && d[0] === "1") {
@@ -13,6 +14,7 @@
     return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
   }
 
+  /** @param {HTMLInputElement} input */
   function enhancePhoneInput(input) {
     if (input.dataset.phoneEnhanced) return;
     input.dataset.phoneEnhanced = "true";
@@ -55,7 +57,7 @@
   }
 
   function scan() {
-    document.querySelectorAll("input.rpt-phone").forEach(enhancePhoneInput);
+    /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll("input.rpt-phone")).forEach(enhancePhoneInput);
   }
 
   if (document.readyState === "loading") {

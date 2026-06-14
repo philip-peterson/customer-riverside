@@ -15,6 +15,7 @@ const CHECK = html`<svg width="14" height="11" viewBox="0 0 14 11" fill="none" x
 
 const EMPTY_FORM = { firstName: "", lastName: "", email: "", phone: "", comments: "" };
 
+/** @param {string | number} [raw] */
 function formatPhone(raw) {
   let d = String(raw || "").replace(/\D/g, "");
   if (d.length === 11 && d[0] === "1") {
@@ -70,6 +71,7 @@ const CX = {
   successNote:    "text-sm text-green-700",
 };
 
+/** @param {Date} d */
 function localDateStr(d) {
   return d.getFullYear() + "-" +
     String(d.getMonth() + 1).padStart(2, "0") + "-" +
@@ -83,12 +85,14 @@ function nextBusinessDay() {
   return localDateStr(d);
 }
 
+/** @param {string} startStr */
 function slotLabel(startStr) {
   var d = new Date(startStr);
   var h = d.getHours();
   return (h % 12 || 12) + (h < 12 ? "AM" : "PM") + " PST";
 }
 
+/** @param {string} startStr */
 function formatAppointmentDate(startStr) {
   var parts = startStr.split("T")[0].split("-");
   var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
@@ -100,32 +104,35 @@ function formatAppointmentDate(startStr) {
 // Keyed by service in the parent, so it always mounts fresh for each service.
 // service is a prop here — it never changes within an instance's lifetime,
 // which means the fetch effect can depend only on dateRange (no stale-service risk).
+/**
+ * @param {{ service: string, settings: RiversidePtSettings }} props
+ */
 function BookingPanel({ service, settings }) {
-  const [dateRange, setDateRange] = useState(null);
-  const [fetchedEvents, setFetchedEvents] = useState(null);
+  const [dateRange, setDateRange] = useState(/** @type {string | null} */ (null));
+  const [fetchedEvents, setFetchedEvents] = useState(/** @type {RiversidePtEvent[] | null} */ (null));
   const [fetchLoading, setFetchLoading] = useState(false);
-  const [slots, setSlots] = useState([]);
-  const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [slots, setSlots] = useState(/** @type {RiversidePtEvent[]} */ ([]));
+  const [selectedSlotId, setSelectedSlotId] = useState(/** @type {number | string | null} */ (null));
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+  const [submitError, setSubmitError] = useState(/** @type {string | null} */ (null));
   const [success, setSuccess] = useState(false);
-  const [confirmedAppointment, setConfirmedAppointment] = useState(null);
+  const [confirmedAppointment, setConfirmedAppointment] = useState(/** @type {{ start: string, service: string, firstName: string, lastName: string, email: string } | null} */ (null));
   const [noSlotsInMonth, setNoSlotsInMonth] = useState(false);
 
-  const calEl = useRef(null);
-  const calRef = useRef(null);
+  const calEl = useRef(/** @type {HTMLDivElement | null} */ (null));
+  const calRef = useRef(/** @type {any} */ (null));
   const initializedRef = useRef(false);
   const autoAdvanceRef = useRef(0);
-  const fetchAbortRef = useRef(null);
+  const fetchAbortRef = useRef(/** @type {AbortController | null} */ (null));
   // Instance-scoped vars for FullCalendar callbacks (no stale-closure risk via .current).
-  const selectedDateRef = useRef(null);
-  const selectedDateSlotsRef = useRef([]);
-  const currentEventsRef = useRef([]);
+  const selectedDateRef = useRef(/** @type {string | null} */ (null));
+  const selectedDateSlotsRef = useRef(/** @type {RiversidePtEvent[]} */ ([]));
+  const currentEventsRef = useRef(/** @type {RiversidePtEvent[]} */ ([]));
   const initDate = useMemo(nextBusinessDay, []);
-  const formRef = useRef(null);
-  const prevSlotIdRef = useRef(null);
-  const successRef = useRef(null);
+  const formRef = useRef(/** @type {HTMLFormElement | null} */ (null));
+  const prevSlotIdRef = useRef(/** @type {number | string | null} */ (null));
+  const successRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   function buildEventsUrl() {
     return settings.eventsUrl + "?service=" + service;
@@ -133,15 +140,19 @@ function BookingPanel({ service, settings }) {
 
   // ── Initialize FullCalendar once ─────────────────────────────────────
   useEffect(function () {
-    if (!calEl.current || !window.FullCalendar) return;
+    var root = calEl.current;
+    if (!root || !window.FullCalendar) return;
+    /** @type {HTMLDivElement} */
+    var rootEl = root;
 
-    var cal = new FullCalendar.Calendar(calEl.current, {
+    var FC = window.FullCalendar || FullCalendar;
+    var cal = new FC.Calendar(root, {
       initialView: "dayGridMonth",
       initialDate: initDate,
       headerToolbar: { left: "prev", center: "title", right: "next" },
       titleFormat: { year: "numeric", month: "long" },
       dayHeaderFormat: { weekday: "narrow" },
-      validRange: function (now) {
+      validRange: function (/** @type {any} */ now) {
         return {
           start: new Date(now.getFullYear(), now.getMonth(), 1),
           end: new Date(now.getFullYear(), now.getMonth() + 7, 1),
@@ -153,14 +164,14 @@ function BookingPanel({ service, settings }) {
       eventDisplay: "none",
       dayMaxEvents: false,
 
-      datesSet: function (info) {
-        calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
+      datesSet: function (/** @type {any} */ info) {
+        rootEl.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (/** @type {any} */ d) {
           d.classList.remove("is-selected");
         });
         setSelectedSlotId(null);
         setNoSlotsInMonth(false);
         if (selectedDateRef.current) {
-          var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + selectedDateRef.current + "\"]");
+          var dayEl = rootEl.querySelector(".fc-daygrid-day[data-date=\"" + selectedDateRef.current + "\"]");
           if (dayEl) {
             dayEl.classList.add("is-selected");
             setSlots(selectedDateSlotsRef.current);
@@ -173,31 +184,31 @@ function BookingPanel({ service, settings }) {
         setDateRange(info.startStr + "/" + info.endStr);
       },
 
-      eventsSet: function (events) {
-        calEl.current.querySelectorAll(".fc-daygrid-day.has-availability").forEach(function (d) {
+      eventsSet: function (/** @type {any[]} */ events) {
+        rootEl.querySelectorAll(".fc-daygrid-day.has-availability").forEach(function (/** @type {any} */ d) {
           d.classList.remove("has-availability");
         });
-        events.forEach(function (event) {
+        events.forEach(function (/** @type {any} */ event) {
           var dateStr = event.startStr.substring(0, 10);
-          var dayEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + dateStr + "\"]");
+          var dayEl = rootEl.querySelector(".fc-daygrid-day[data-date=\"" + dateStr + "\"]");
           if (dayEl) dayEl.classList.add("has-availability");
         });
       },
 
-      dayCellClassNames: function (arg) {
+      dayCellClassNames: function (/** @type {any} */ arg) {
         var date = arg.date.toISOString().substring(0, 10);
         if (settings.holidays[date]) return ["is-holiday"];
       },
 
-      dateClick: function (arg) {
+      dateClick: function (/** @type {any} */ arg) {
         if (!arg.dayEl.classList.contains("has-availability")) return;
-        calEl.current.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (d) {
+        rootEl.querySelectorAll(".fc-daygrid-day.is-selected").forEach(function (/** @type {any} */ d) {
           d.classList.remove("is-selected");
         });
         arg.dayEl.classList.add("is-selected");
         var daySlots = currentEventsRef.current
-          .filter(function (e) { return e.start.startsWith(arg.dateStr); })
-          .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+          .filter(function (/** @type {RiversidePtEvent} */ e) { return e.start.startsWith(arg.dateStr); })
+          .sort(function (/** @type {RiversidePtEvent} */ a, /** @type {RiversidePtEvent} */ b) { return a.start < b.start ? -1 : 1; });
         selectedDateRef.current = arg.dateStr;
         selectedDateSlotsRef.current = daySlots;
         setSelectedSlotId(null);
@@ -229,12 +240,12 @@ function BookingPanel({ service, settings }) {
     setFetchedEvents(null);
     fetch(url, { signal: controller.signal })
       .then(function (r) { return r.json(); })
-      .then(function (data) {
+      .then(function (/** @type {RiversidePtEvent[]} */ data) {
         currentEventsRef.current = data;
         setFetchedEvents(data);
         setFetchLoading(false);
       })
-      .catch(function (err) {
+      .catch(function (/** @type {any} */ err) {
         if (err.name === "AbortError") return;
         currentEventsRef.current = [];
         setFetchedEvents([]);
@@ -254,15 +265,16 @@ function BookingPanel({ service, settings }) {
       cal.addEventSource(fetchedEvents);
 
       if (!initializedRef.current) {
-        var dates = [...new Set(fetchedEvents.map(function (e) { return e.start.substring(0, 10); }))].sort();
+        var dates = [...new Set(fetchedEvents.map(function (/** @type {RiversidePtEvent} */ e) { return e.start.substring(0, 10); }))].sort();
         var firstDate = dates[0];
         if (firstDate) {
           var firstSlots = fetchedEvents
-            .filter(function (e) { return e.start.startsWith(firstDate); })
-            .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+            .filter(function (/** @type {RiversidePtEvent} */ e) { return e.start.startsWith(firstDate); })
+            .sort(function (/** @type {RiversidePtEvent} */ a, /** @type {RiversidePtEvent} */ b) { return a.start < b.start ? -1 : 1; });
           selectedDateRef.current = firstDate;
           selectedDateSlotsRef.current = firstSlots;
-          var targetEl = calEl.current.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]");
+          var root = calEl.current;
+          var targetEl = root ? root.querySelector(".fc-daygrid-day[data-date=\"" + firstDate + "\"]") : null;
           if (targetEl) {
             initializedRef.current = true;
             autoAdvanceRef.current = 0;
@@ -292,28 +304,34 @@ function BookingPanel({ service, settings }) {
     }
   }, [success]);
 
+  /** @param {RiversidePtEvent} slot */
   function handleSlotClick(slot) {
     setSelectedSlotId(slot.id);
     setSubmitError(null);
     setSuccess(false);
   }
 
+  /** @param {string} field @param {string} value */
   function handleFormChange(field, value) {
     setFormData(function (prev) { return Object.assign({}, prev, { [field]: value }); });
   }
 
+  /** @param {Event} e */
   function handleSubmit(e) {
     e.preventDefault();
-    var slot = slots.find(function (s) { return s.id === selectedSlotId; });
+    var slot = slots.find(function (/** @type {RiversidePtEvent} */ s) { return s.id === selectedSlotId; });
     if (!slot) return;
+    // Capture values synchronously; the async callbacks close over these, not the find result.
+    var chosenStart = slot.start;
+    var chosenEnd = slot.end;
     setSubmitting(true);
     setSubmitError(null);
     fetch(settings.storeSlotUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        start: slot.start,
-        end: slot.end,
+        start: chosenStart,
+        end: chosenEnd,
         service: service,
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -326,7 +344,7 @@ function BookingPanel({ service, settings }) {
         setSubmitting(false);
         setSubmitError(null);
         setConfirmedAppointment({
-          start: slot.start,
+          start: chosenStart,
           service: service,
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -340,7 +358,7 @@ function BookingPanel({ service, settings }) {
         if (res.status === 422) {
           setSubmitError("That slot was just booked. Please choose another time.");
         } else {
-          res.json().then(function (data) {
+          res.json().then(function (/** @type {{message?: string}} */ data) {
             setSubmitError(data.message || "Something went wrong. Please try again.");
           }).catch(function () {
             setSubmitError("Something went wrong. Please try again.");
@@ -353,7 +371,7 @@ function BookingPanel({ service, settings }) {
     });
   }
 
-  var selectedSlot = slots.find(function (s) { return s.id === selectedSlotId; });
+  var selectedSlot = slots.find(function (/** @type {RiversidePtEvent} */ s) { return s.id === selectedSlotId; });
 
   return html`
     <div>
@@ -372,11 +390,11 @@ function BookingPanel({ service, settings }) {
         ${slots.length > 0 ? html`
           <div id="riverside-slots-wrap">
             <p class="text-xs text-gray-500 mb-3">Select a time on ${(function () {
-              var p = slots[0].start.split("T")[0].split("-");
+              var p = slots[0] ? slots[0].start.split("T")[0].split("-") : ["","",""];
               return parseInt(p[1]) + "/" + parseInt(p[2]) + "/" + p[0];
             })()}:</p>
             <div id="riverside-booking-slots">
-              ${slots.map(function (slot) {
+              ${slots.map(function (/** @type {RiversidePtEvent} */ slot) {
                 return html`
                   <button
                     key=${slot.id}
@@ -407,7 +425,7 @@ function BookingPanel({ service, settings }) {
                 autocomplete="given-name"
                 required
                 value=${formData.firstName}
-                onInput=${function (e) { handleFormChange("firstName", e.target.value); }}
+                onInput=${function (/** @type {any} */ e) { handleFormChange("firstName", e.target.value); }}
                 class=${CX.formInput}
               />
             </div>
@@ -422,7 +440,7 @@ function BookingPanel({ service, settings }) {
                 autocomplete="family-name"
                 required
                 value=${formData.lastName}
-                onInput=${function (e) { handleFormChange("lastName", e.target.value); }}
+                onInput=${function (/** @type {any} */ e) { handleFormChange("lastName", e.target.value); }}
                 class=${CX.formInput}
               />
             </div>
@@ -437,7 +455,7 @@ function BookingPanel({ service, settings }) {
                 autocomplete="email"
                 required
                 value=${formData.email}
-                onInput=${function (e) { handleFormChange("email", e.target.value); }}
+                onInput=${function (/** @type {any} */ e) { handleFormChange("email", e.target.value); }}
                 class=${CX.formInput}
               />
             </div>
@@ -452,7 +470,7 @@ function BookingPanel({ service, settings }) {
                 autocomplete="tel"
                 required
                 value=${formatPhone(formData.phone)}
-                onInput=${function (e) {
+                onInput=${function (/** @type {any} */ e) {
                   handleFormChange("phone", formatPhone(e.target.value));
                 }}
                 class=${CX.formInput}
@@ -470,7 +488,7 @@ function BookingPanel({ service, settings }) {
               name="comments"
               autocomplete="off"
               value=${formData.comments}
-              onInput=${function (e) { handleFormChange("comments", e.target.value); }}
+              onInput=${function (/** @type {any} */ e) { handleFormChange("comments", e.target.value); }}
               class=${CX.formTextarea}
             ></textarea>
           </div>
@@ -491,7 +509,7 @@ function BookingPanel({ service, settings }) {
             <div class=${CX.successSummary}>
               <p>${confirmedAppointment.firstName} ${confirmedAppointment.lastName}</p>
               <p>${confirmedAppointment.email}</p>
-              <p>${TYPES.find(function (t) { return t.id === confirmedAppointment.service; }).label}</p>
+              <p>${(TYPES.find(function (/** @type {{id:string,label:string}} */ t) { return t.id === confirmedAppointment.service; }) || {}).label}</p>
               <p>${formatAppointmentDate(confirmedAppointment.start)}</p>
             </div>
             <p class=${CX.successNote}>We'll contact you shortly to confirm your appointment.</p>
@@ -506,8 +524,11 @@ function BookingPanel({ service, settings }) {
 // Owns service selection and the type selector UI. Keys BookingPanel by
 // service so it mounts fresh on every change — no reset effects, no races.
 // Starts with null so no service is pre-selected.
+/**
+ * @param {{ settings: RiversidePtSettings }} props
+ */
 function Booking({ settings }) {
-  const [service, setService] = useState(null);
+  const [service, setService] = useState(/** @type {string | null} */ (null));
 
   return html`
     <div style="min-height:460px">
@@ -519,7 +540,7 @@ function Booking({ settings }) {
             <button
               key=${t.id}
               onClick=${function () {
-                setService(t.id);
+                setService(/** @type {string} */ (t.id));
               }}
               style="text-align:left; cursor:pointer;"
               class=${CX.typeBtn + " " + (active ? CX.typeBtnActive : CX.typeBtnInactive)}
@@ -548,7 +569,8 @@ function Booking({ settings }) {
 
 class RptBooking extends HTMLElement {
   connectedCallback() {
-    render(html`<${Booking} settings=${window.drupalSettings.riversidePt} />`, this);
+    var settings = (window.drupalSettings && window.drupalSettings.riversidePt) || /** @type {RiversidePtSettings} */ ({ eventsUrl: "", storeSlotUrl: "", holidays: {} });
+    render(html`<${Booking} settings=${settings} />`, this);
   }
   disconnectedCallback() {
     render(null, this);
