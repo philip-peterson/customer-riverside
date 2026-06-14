@@ -37,10 +37,18 @@ jobs:
 
       - name: Build and push
         id: push
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
           podman build --layers=false -t "$IMAGE:${{ github.sha }}" .
-          podman push "$IMAGE:${{ github.sha }}" --digestfile /tmp/img-digest
-          DIGEST=$(grep -oE '[a-f0-9]{64}' /tmp/img-digest)
+          podman push "$IMAGE:${{ github.sha }}"
+          DIGEST=$(curl -sf \
+            -u "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" \
+            -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+            -I \
+            "https://${{ env.REGISTRY }}/v2/ironmagma/customer-riverside/manifests/${{ github.sha }}" \
+            | grep -i 'docker-content-digest:' | grep -oE '[a-f0-9]{64}')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
   bump-infra:
