@@ -209,6 +209,9 @@ function BookingPanel({ service, settings }) {
 
     cal.render();
     calRef.current = cal;
+
+    window.rptScrollTo(cal, true);
+
     return function () { cal.destroy(); };
   }, []);
 
@@ -277,7 +280,7 @@ function BookingPanel({ service, settings }) {
   }, [fetchedEvents]);
 
   useEffect(function () {
-    if (selectedSlotId && !prevSlotIdRef.current && formRef.current) {
+    if (selectedSlotId && prevSlotIdRef.current !== selectedSlotId && formRef.current) {
       window.rptScrollTo(formRef.current, true);
     }
     prevSlotIdRef.current = selectedSlotId;
@@ -515,7 +518,9 @@ function Booking({ settings }) {
           return html`
             <button
               key=${t.id}
-              onClick=${function () { setService(t.id); }}
+              onClick=${function () {
+                setService(t.id);
+              }}
               style="text-align:left; cursor:pointer;"
               class=${CX.typeBtn + " " + (active ? CX.typeBtnActive : CX.typeBtnInactive)}
             >
