@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "paths": {
+      "https://esm.sh/preact@10": ["./node_modules/preact/src/index.d.ts"],
+      "https://esm.sh/preact@10/hooks": ["./node_modules/preact/hooks/src/index.d.ts"],
+      "https://esm.sh/htm@3/preact": ["./node_modules/htm/preact/index.d.ts"]
+    }
+  },
+  "include": [
+    "web/modules/custom/riverside_pt/js/**/*.js",
+    "web/modules/custom/riverside_pt/js/globals.d.ts"
+  ]
+}

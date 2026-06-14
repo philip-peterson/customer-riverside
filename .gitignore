@@ -5,3 +5,5 @@ web/sites/default/files/*
 
 # Never commit real credentials
 .env
+
+node_modules/
