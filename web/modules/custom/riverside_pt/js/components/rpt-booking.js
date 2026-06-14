@@ -197,7 +197,7 @@ function BookingPanel({ service, settings }) {
 
       dayCellClassNames: function (/** @type {any} */ arg) {
         var date = arg.date.toISOString().substring(0, 10);
-        if (settings.holidays[date]) return ["is-holiday"];
+        return settings.holidays[date] ? ["is-holiday"] : [];
       },
 
       dateClick: function (/** @type {any} */ arg) {
@@ -221,7 +221,9 @@ function BookingPanel({ service, settings }) {
     cal.render();
     calRef.current = cal;
 
-    window.rptScrollTo(cal, true);
+    requestAnimationFrame(() => {
+      window.rptScrollTo(rootEl, true);
+    })
 
     return function () { cal.destroy(); };
   }, []);
