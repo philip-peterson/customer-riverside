@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: forge.quinefoundation.com
-  IMAGE: forge.quinefoundation.com/ironmagma/customer-riverside
+  IMAGE: forge.quinefoundation.com/cold-air-networks/customer-riverside
 
 jobs:
   build:
@@ -47,7 +47,7 @@ jobs:
             -u "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" \
             -H "Accept: application/vnd.oci.image.manifest.v1+json" \
             -I \
-            "https://${{ env.REGISTRY }}/v2/ironmagma/customer-riverside/manifests/${{ github.sha }}" \
+            "https://${{ env.REGISTRY }}/v2/cold-air-networks/customer-riverside/manifests/${{ github.sha }}" \
             | grep -i 'docker-content-digest:' | grep -oE '[a-f0-9]{64}')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
